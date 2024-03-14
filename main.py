@@ -6,6 +6,8 @@ from dateutil import tz, parser as date_parser
 import requests
 from dotenv import load_dotenv
 import sys
+import smtplib
+from email.message import EmailMessage
 
 # TODO:
 # 1. Email Notification if script stops running or throws an error
@@ -20,6 +22,7 @@ API_KEY = os.getenv("CLOUDFLARE_API_KEY")
 EMAIL = os.getenv("CLOUDFLARE_EMAIL")
 # BEARER = f"Bearer {os.getenv("CLOUDFLARE_BEARER")}""
 ZONE_ID = os.getenv("ZONE_ID")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # Syslog server configuration
 SYSLOG_SERVER = "customhost"  # "192.168.56.20"  # "customhost"
@@ -155,6 +158,27 @@ def convert_to_cef(record: dict):
     return cef_record
 
 
+def send_email(text: str):
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 587
+    SENDER_EMAIL = "adapturetest@gmail.com"
+    SENDER_PASSWORD = "qavz tjug vfjr mcki"
+    RECIPIENTS = ["cmartinez@adapture.com", "abaig@adapture.com"]
+    msg = EmailMessage()
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = ", ".join(RECIPIENTS)
+    msg["Subject"] = "TESTING CELERY Catching Signals and Sending Emails"
+    msg.set_content(text)
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()  # Start TLS encryption
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.send_message(msg)
+            print("Email sent successfully")
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+
+
 def main():
     try:
         current_time = datetime.now(tz.tzutc())
@@ -189,4 +213,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        send_email(f"An error occurred: {str(e)}")
+        pass
