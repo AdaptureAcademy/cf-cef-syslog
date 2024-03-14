@@ -64,7 +64,7 @@ def update_last_processed_timestamp(timestamp):
         file.write(timestamp.isoformat())
 
 
-def fetch_cloudflare_logs(start_time, end_time):
+def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
     headers = {
         "X-Auth-Email": EMAIL,
         "X-Auth-Key": API_KEY,
@@ -86,18 +86,31 @@ def fetch_cloudflare_logs(start_time, end_time):
     ]
 
 
-def save_and_transmit_log_file(logs: list, end_time: datetime):
-    directory = f"./var/log/cloudflare/{end_time.strftime('%Y')}/{end_time.strftime('%B')}/{end_time.strftime('%d')}"
-    os.makedirs(directory, exist_ok=True)
-    filepath = os.path.join(directory, f"{end_time.strftime('%H')}:00.cef")
+def save_and_transmit_logs(logs, end_time):
+    latest_timestamp = None  # Initialize variable to track the latest timestamp
 
-    with open(filepath, "a") as file:
-        for record in logs:
-            cef_record = convert_to_cef(record)
+    for record in logs:
+        # Convert EdgeStartTimestamp to datetime object
+        timestamp = datetime.fromtimestamp(record["EdgeStartTimestamp"] / 1_000_000_000.0, tz=timezone.utc)
+
+        # Update latest_timestamp if this log's timestamp is newer
+        if latest_timestamp is None or timestamp > latest_timestamp:
+            latest_timestamp = timestamp
+
+        # Directory structure and file handling remains the same
+        directory = f"./log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
+        os.makedirs(directory, exist_ok=True)
+        filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
+        cef_record = convert_to_cef(record)
+
+        # Log to syslog server and file
+        syslog_handler.handle(logging.LogRecord("syslog_logger", logging.INFO, filepath, 0, cef_record, [], None))
+        with open(filepath, "a") as file:
             file.write(cef_record + "\n")
 
-    # Transmit log to syslog server
-    # logger.info(cef_record)
+    # Update the last_processed_timestamp to the end_time of this execution
+    if logs:  # Update only if there are new logs processed
+        update_last_processed_timestamp(end_time)
 
 
 def convert_to_cef(record: dict):
@@ -122,24 +135,29 @@ def convert_to_cef(record: dict):
 
 
 def main():
-    start_time = get_last_processed_timestamp()
-    end_time = datetime.now(tz.tzutc()) - timedelta(minutes=1)
+    current_time = datetime.now(tz.tzutc())
+    last_processed_time = get_last_processed_timestamp()
 
-    if (end_time - start_time).total_seconds() > 3600:
-        end_time = start_time + timedelta(hours=1)
+    # Loop through each hour from the last_processed_time up to the current_time
+    while last_processed_time < current_time:
+        # Calculate the start and end time for the current hour block
+        start_time = last_processed_time
+        end_time = min(start_time + timedelta(hours=1), current_time)
 
-    # logs = fetch_cloudflare_logs(start_time, end_time)
+        # Update last_processed_time for the next iteration
+        last_processed_time = end_time
 
-    # read logs from a json file
-    with open("logs.json") as f:
-        logs = json.load(f)
+        # Fetch logs for the current hour block
+        logs = fetch_cloudflare_logs(start_time, end_time)
 
-    if logs:
-        save_and_transmit_log_file(logs, end_time)
-        update_last_processed_timestamp(end_time)
-        print("Logs have been processed.")
-    else:
-        print("No new logs to process.")
+        # Process and save the logs
+        if logs:
+            save_and_transmit_logs(logs, end_time)
+            # Update the last_processed_timestamp to the end_time of this hour block
+            update_last_processed_timestamp(end_time)
+            print(f"Logs between {start_time} and {end_time} have been processed.")
+        else:
+            print(f"No new logs to process between {start_time} and {end_time}.")
 
 
 if __name__ == "__main__":
