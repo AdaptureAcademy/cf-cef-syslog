@@ -128,7 +128,7 @@ def main():
         logs = json.load(f)
 
     if logs:
-        save_and_transmit_logs(logs)
+        save_and_transmit_logs(logs, end_time)
         update_last_processed_timestamp(end_time)
         print("Logs have been processed.")
     else:
