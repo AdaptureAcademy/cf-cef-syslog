@@ -34,14 +34,17 @@ syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_P
 syslog_handler.setLevel(logging.INFO)
 syslog_logger = logging.getLogger("syslog_logger")
 syslog_logger.addHandler(syslog_handler)
+formatter = logging.Formatter(fmt="%(asctime)s %(levelname)-8s %(message)s")
 error_file_handler = logging.handlers.RotatingFileHandler(
     "error.log", maxBytes=10000, backupCount=10
 )
 error_file_handler.setLevel(logging.ERROR)
+error_file_handler.setFormatter(formatter)
 info_file_handler = logging.handlers.RotatingFileHandler(
     "info.log", maxBytes=15000, backupCount=10
 )
 info_file_handler.setLevel(logging.INFO)
+info_file_handler.setFormatter(formatter)
 file_logger = logging.getLogger("file_logger")
 file_logger.addHandler(error_file_handler)
 file_logger.addHandler(info_file_handler)
@@ -53,6 +56,7 @@ def get_last_processed_timestamp():
             last_processed_timestamp_str = file.read().strip()
             return date_parser.parse(last_processed_timestamp_str)
     except FileNotFoundError:
+        file_logger.error("State file not found. Assuming first run.")
         return datetime.now(tz.tzutc()) - timedelta(hours=1)
 
 
