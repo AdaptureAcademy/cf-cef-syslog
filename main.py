@@ -2,7 +2,7 @@ import json
 import logging.handlers
 import os
 from datetime import datetime, timedelta, timezone
-from dateutil import parser, tz
+from dateutil import tz, parser as date_parser
 import requests
 from dotenv import load_dotenv
 import sys
@@ -11,13 +11,14 @@ import sys
 # 1. Add error handling and logging
 # 2. Logs are being duplicated in the log files. Need to fix this.
 
-print('Python %s on %s' % (sys.version, sys.platform))
+print("Python %s on %s" % (sys.version, sys.platform))
 # Load environment variables from .env
 load_dotenv()
 
 # Retrieve API key, email, and zone ID from environment variables
 API_KEY = os.getenv("CLOUDFLARE_API_KEY")
 EMAIL = os.getenv("CLOUDFLARE_EMAIL")
+# BEARER = f"Bearer {os.getenv("CLOUDFLARE_BEARER")}""
 ZONE_ID = os.getenv("ZONE_ID")
 
 # Syslog server configuration
@@ -29,22 +30,33 @@ STATE_FILE_PATH = "last_processed_timestamp.txt"
 
 # Setup logging to syslog server
 syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(syslog_handler)
+syslog_handler.setLevel(logging.INFO)
+syslog_logger = logging.getLogger("syslog_logger")
+syslog_logger.addHandler(syslog_handler)
+error_file_handler = logging.handlers.RotatingFileHandler(
+    "error.log", maxBytes=10000, backupCount=10
+)
+error_file_handler.setLevel(logging.ERROR)
+info_file_handler = logging.handlers.RotatingFileHandler(
+    "info.log", maxBytes=15000, backupCount=10
+)
+info_file_handler.setLevel(logging.INFO)
+file_logger = logging.getLogger("file_logger")
+file_logger.addHandler(error_file_handler)
+file_logger.addHandler(info_file_handler)
 
 
 def get_last_processed_timestamp():
     try:
-        with open(STATE_FILE_PATH, 'r') as file:
+        with open(STATE_FILE_PATH, "r") as file:
             last_processed_timestamp_str = file.read().strip()
-            return parser.parse(last_processed_timestamp_str)
+            return date_parser.parse(last_processed_timestamp_str)
     except FileNotFoundError:
         return datetime.now(tz.tzutc()) - timedelta(hours=1)
 
 
 def update_last_processed_timestamp(timestamp):
-    with open(STATE_FILE_PATH, 'w') as file:
+    with open(STATE_FILE_PATH, "w") as file:
         file.write(timestamp.isoformat())
 
 
@@ -54,15 +66,20 @@ def fetch_cloudflare_logs(start_time, end_time):
         "X-Auth-Key": API_KEY,
         "Content-Type": "application/json",
     }
+    # headers = {
+    #     "Authentication": BEARER,
+    #     "Content-Type": "application/json",
+    # }
     url = f"https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/logs/received"
     params = {
-        'start': start_time.isoformat(),
-        'end': end_time.isoformat(),
-        'fields': 'ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID',
+        "start": start_time.isoformat(),
+        "end": end_time.isoformat(),
+        "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
     }
     response = requests.get(url, headers=headers, params=params)
-    return [json.loads(line) for line in response.iter_lines(decode_unicode=True) if line]
-
+    return [
+        json.loads(line) for line in response.iter_lines(decode_unicode=True) if line
+    ]
 
 def save_and_transmit_logs(logs, end_time):
     latest_timestamp = None  # Initialize variable to track the latest timestamp
@@ -80,21 +97,22 @@ def save_and_transmit_logs(logs, end_time):
         os.makedirs(directory, exist_ok=True)
         filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
 
-        with open(filepath, 'a') as file:
+    with open(filepath, "a") as file:
+        for record in logs:
             cef_record = convert_to_cef(record)
             # Transmit log to syslog server
             logger.info(cef_record)
             file.write(cef_record + "\n")
 
-        # Optionally transmit log to syslog server
-        # logger.info(cef_record)
+    # Transmit log to syslog server
+    # logger.info(cef_record)
 
     # Update the last_processed_timestamp to the end_time of this execution
     if logs:  # Update only if there are new logs processed
         update_last_processed_timestamp(end_time)
 
-
-def convert_to_cef(record):
+def convert_to_cef(record: dict):
+    # CEF:Version|Device Vendor|Device Product|Device Version|Device Event Class ID|Name|Severity|
     cef_header = "CEF:0|NetWitness|Audit|1.0|100|Log Received|1|"
     cef_mapping = {
         "src": record.get("ClientIP"),
@@ -108,7 +126,9 @@ def convert_to_cef(record):
         "cn1": record.get("RayID"),
         "cn1Label": "RayID",
     }
-    cef_record = cef_header + " ".join(f"{key}={value}" for key, value in cef_mapping.items() if value is not None)
+    cef_record = cef_header + " ".join(
+        f"{key}={value}" for key, value in cef_mapping.items() if value is not None
+    )
     return cef_record
 
 
