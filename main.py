@@ -124,9 +124,9 @@ def save_and_transmit_logs(logs, end_time):
             with open(filepath, "a") as file:
                 file.write(cef_record + "\n")
 
-            # Update the last_processed_timestamp to the end_time of this execution
-            if logs:  # Update only if there are new logs processed
-                update_last_processed_timestamp(end_time)
+        # Update the last_processed_timestamp to the end_time of this execution
+        if logs:  # Update only if there are new logs processed
+            update_last_processed_timestamp(end_time)
     except Exception as e:
         file_logger.error("An error occurred while saving logs", exc_info=True)
         syslog_logger.error("An error occurred while saving logs", exc_info=True)
