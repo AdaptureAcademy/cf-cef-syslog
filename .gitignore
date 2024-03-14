@@ -3,3 +3,4 @@ log
 venv
 .vscode
 old.py
+.env
