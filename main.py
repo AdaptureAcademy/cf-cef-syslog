@@ -22,7 +22,7 @@ EMAIL = os.getenv("CLOUDFLARE_EMAIL")
 ZONE_ID = os.getenv("ZONE_ID")
 
 # Syslog server configuration
-SYSLOG_SERVER = "192.168.56.20"
+SYSLOG_SERVER = "customhost"  # "192.168.56.20"  # "customhost"
 SYSLOG_PORT = 514
 
 # Path to the state file
@@ -33,6 +33,7 @@ syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_P
 syslog_handler.setLevel(logging.INFO)
 syslog_logger = logging.getLogger("syslog_logger")
 syslog_logger.addHandler(syslog_handler)
+# Setup logging to file
 formatter = logging.Formatter(fmt="%(asctime)s %(levelname)-8s %(message)s")
 error_file_handler = logging.handlers.RotatingFileHandler(
     "error.log", maxBytes=10000, backupCount=10
@@ -55,11 +56,14 @@ def get_last_processed_timestamp():
             last_processed_timestamp_str = file.read().strip()
             return date_parser.parse(last_processed_timestamp_str)
     except FileNotFoundError:
-        file_logger.error("State file not found. Assuming first run.")
+        file_logger.info("State file not found. Assuming first run.")
         return datetime.now(tz.tzutc()) - timedelta(hours=1)
 
 
 def update_last_processed_timestamp(timestamp):
+    # chek if STATE_FILE_PATH exists and log the first time it is created
+    if not os.path.exists(STATE_FILE_PATH):
+        file_logger.info(f"Creating file {STATE_FILE_PATH}")
     with open(STATE_FILE_PATH, "w") as file:
         file.write(timestamp.isoformat())
 
@@ -80,7 +84,12 @@ def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
         "end": end_time.isoformat(),
         "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
     }
-    response = requests.get(url, headers=headers, params=params)
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        file_logger.error(f"Failed to fetch logs: {e}")
+        return []
     return [
         json.loads(line) for line in response.iter_lines(decode_unicode=True) if line
     ]
@@ -91,7 +100,9 @@ def save_and_transmit_logs(logs, end_time):
 
     for record in logs:
         # Convert EdgeStartTimestamp to datetime object
-        timestamp = datetime.fromtimestamp(record["EdgeStartTimestamp"] / 1_000_000_000.0, tz=timezone.utc)
+        timestamp = datetime.fromtimestamp(
+            record["EdgeStartTimestamp"] / 1_000_000_000.0, tz=timezone.utc
+        )
 
         # Update latest_timestamp if this log's timestamp is newer
         if latest_timestamp is None or timestamp > latest_timestamp:
@@ -104,7 +115,11 @@ def save_and_transmit_logs(logs, end_time):
         cef_record = convert_to_cef(record)
 
         # Log to syslog server and file
-        syslog_handler.handle(logging.LogRecord("syslog_logger", logging.INFO, filepath, 0, cef_record, [], None))
+        syslog_handler.handle(
+            logging.LogRecord(
+                "syslog_logger", logging.INFO, filepath, 0, cef_record, [], None
+            )
+        )
         with open(filepath, "a") as file:
             file.write(cef_record + "\n")
 
