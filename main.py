@@ -66,6 +66,7 @@ async def create_instant_logs_job():
         "filter": "",
         "kind": "instant-logs"
     }
+    print(EMAIL, API_KEY, ZONE_ID)
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 201:
         websocket_url = response.json()["result"]["destination_conf"]
