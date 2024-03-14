@@ -1,12 +1,16 @@
 import json
 import logging.handlers
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dateutil import parser, tz
 import requests
 from dotenv import load_dotenv
 import sys
 
+
+# TODO:
+# 1. Add error handling and logging
+# 2. Logs are being duplicated in the log files. Need to fix this.
 
 print('Python %s on %s' % (sys.version, sys.platform))
 # Load environment variables from .env
@@ -61,25 +65,35 @@ def fetch_cloudflare_logs(start_time, end_time):
     return [json.loads(line) for line in response.iter_lines(decode_unicode=True) if line]
 
 
-def save_and_transmit_logs(logs):
-    if not logs:
-        return
-    latest_log_timestamp = max(log['EdgeStartTimestamp'] for log in logs) / 1_000_000_000
-    latest_timestamp = datetime.fromtimestamp(latest_log_timestamp, tz=tz.tzutc())
+def save_and_transmit_logs(logs, end_time):
+    latest_timestamp = None  # Initialize variable to track the latest timestamp
 
-    for log in logs:
-        cef_record = convert_to_cef(log)
+    for record in logs:
+        # Convert EdgeStartTimestamp to datetime object
+        timestamp = datetime.fromtimestamp(record["EdgeStartTimestamp"] / 1_000_000_000.0, tz=timezone.utc)
+
+        # Update latest_timestamp if this log's timestamp is newer
+        if latest_timestamp is None or timestamp > latest_timestamp:
+            latest_timestamp = timestamp
+
+        # Transmit log to syslog server
         logger.info(cef_record)
 
-        log_time = datetime.fromtimestamp(log['EdgeStartTimestamp'] / 1_000_000_000, tz=tz.tzutc())
-        directory = f"./log/cloudflare/{log_time.strftime('%Y/%m/%d')}"
+        # Directory structure and file handling remains the same
+        directory = f"./var/log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
         os.makedirs(directory, exist_ok=True)
-        filepath = os.path.join(directory, f"{log_time.strftime('%H')}.cef")
+        filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
 
-        with open(filepath, 'a') as file:
+        with open(filepath, 'w') as file:
+            cef_record = convert_to_cef(record)
             file.write(cef_record + "\n")
 
-    update_last_processed_timestamp(latest_timestamp)
+        # Optionally transmit log to syslog server
+        # logger.info(cef_record)
+
+    # Update the last_processed_timestamp to the end_time of this execution
+    if logs:  # Update only if there are new logs processed
+        update_last_processed_timestamp(end_time)
 
 
 def convert_to_cef(record):
