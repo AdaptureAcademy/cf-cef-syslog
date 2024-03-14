@@ -42,7 +42,7 @@ def update_last_processed_timestamp(timestamp):
         file.write(timestamp.isoformat())
 
 
-def fetch_cloudflare_logs(start_time: str, end_time: str):
+def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
     headers = {
         "X-Auth-Email": EMAIL,
         "X-Auth-Key": API_KEY,
@@ -50,8 +50,8 @@ def fetch_cloudflare_logs(start_time: str, end_time: str):
     }
     url = f"https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/logs/received"
     params = {
-        'start': start_time,
-        'end': end_time,
+        'start': start_time.isoformat(timespec='seconds'),  # Ensure ISO format with seconds precision
+        'end': end_time.isoformat(timespec='seconds'),
         'fields': 'ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,'
                   'EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID',
     }
@@ -116,11 +116,12 @@ def main():
     start_time = get_last_processed_timestamp()
     end_time = datetime.now(timezone.utc) - timedelta(minutes=1)
 
-    # Fetch and process logs
-    logs = fetch_cloudflare_logs(
-        start_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        end_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-    )
+    # Ensure end_time is not more than 1 hour ahead of start_time
+    if (end_time - start_time).total_seconds() > 3600:
+        end_time = start_time + timedelta(hours=1)
+
+    logs = fetch_cloudflare_logs(start_time, end_time)
+
     if logs:
         save_and_transmit_logs(logs)
         # Update the last processed timestamp to the end_time of this execution
