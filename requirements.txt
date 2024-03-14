@@ -1,6 +1,8 @@
 certifi==2020.12.5
-charset-normalizer~=2.0.0
+charset-normalizer==2.0.12
 idna==2.10
+python-dateutil==2.9.0.post0
 python-dotenv==0.20.0
 requests==2.27.1
+six==1.16.0
 urllib3==1.26.5
