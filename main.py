@@ -76,7 +76,7 @@ def save_and_transmit_logs(logs, end_time):
             latest_timestamp = timestamp
 
         # Directory structure and file handling remains the same
-        directory = f"./var/log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
+        directory = f"./log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
         os.makedirs(directory, exist_ok=True)
         filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
 
@@ -136,9 +136,6 @@ def main():
             print(f"Logs between {start_time} and {end_time} have been processed.")
         else:
             print(f"No new logs to process between {start_time} and {end_time}.")
-
-        # Ensure we respect the Cloudflare limits and do not exceed 1-hour blocks
-        # Sleep if necessary to rate limit our requests (optional, based on your rate limits)
 
 
 if __name__ == "__main__":
