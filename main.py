@@ -173,7 +173,10 @@ def send_email(text: str):
 async def main():
     websocket_url = await create_instant_logs_job()
     if websocket_url:
-        await connect_and_process_logs(websocket_url)
+        try:
+            await connect_and_process_logs(websocket_url)
+        except Exception as e:
+            print(f"Error: {e}")
 
 
 if __name__ == "__main__":
