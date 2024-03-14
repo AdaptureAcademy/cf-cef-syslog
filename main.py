@@ -113,24 +113,32 @@ def convert_to_cef(record):
 
 
 def main():
-    start_time = get_last_processed_timestamp()
-    end_time = datetime.now(tz.tzutc()) - timedelta(minutes=1)
+    current_time = datetime.now(tz.tzutc())
+    last_processed_time = get_last_processed_timestamp()
 
-    if (end_time - start_time).total_seconds() > 3600:
-        end_time = start_time + timedelta(hours=1)
+    # Loop through each hour from the last_processed_time up to the current_time
+    while last_processed_time < current_time:
+        # Calculate the start and end time for the current hour block
+        start_time = last_processed_time
+        end_time = min(start_time + timedelta(hours=1), current_time)
 
-    # logs = fetch_cloudflare_logs(start_time, end_time)
+        # Update last_processed_time for the next iteration
+        last_processed_time = end_time
 
-    # read logs from a json file
-    with open('logs.json') as f:
-        logs = json.load(f)
+        # Fetch logs for the current hour block
+        logs = fetch_cloudflare_logs(start_time, end_time)
 
-    if logs:
-        save_and_transmit_logs(logs, end_time)
-        update_last_processed_timestamp(end_time)
-        print("Logs have been processed.")
-    else:
-        print("No new logs to process.")
+        # Process and save the logs
+        if logs:
+            save_and_transmit_logs(logs, end_time)
+            # Update the last_processed_timestamp to the end_time of this hour block
+            update_last_processed_timestamp(end_time)
+            print(f"Logs between {start_time} and {end_time} have been processed.")
+        else:
+            print(f"No new logs to process between {start_time} and {end_time}.")
+
+        # Ensure we respect the Cloudflare limits and do not exceed 1-hour blocks
+        # Sleep if necessary to rate limit our requests (optional, based on your rate limits)
 
 
 if __name__ == "__main__":
