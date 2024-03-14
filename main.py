@@ -76,16 +76,15 @@ def save_and_transmit_logs(logs, end_time):
         if latest_timestamp is None or timestamp > latest_timestamp:
             latest_timestamp = timestamp
 
-        # Transmit log to syslog server
-        logger.info(cef_record)
-
         # Directory structure and file handling remains the same
         directory = f"./var/log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
         os.makedirs(directory, exist_ok=True)
         filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
 
-        with open(filepath, 'w') as file:
+        with open(filepath, 'a') as file:
             cef_record = convert_to_cef(record)
+            # Transmit log to syslog server
+            logger.info(cef_record)
             file.write(cef_record + "\n")
 
         # Optionally transmit log to syslog server
