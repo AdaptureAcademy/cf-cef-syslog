@@ -12,6 +12,7 @@ import sys
 # 2. Logs are being duplicated in the log files. Need to fix this.
 
 print("Python %s on %s" % (sys.version, sys.platform))
+
 # Load environment variables from .env
 load_dotenv()
 
@@ -74,7 +75,8 @@ def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
     params = {
         "start": start_time.isoformat(),
         "end": end_time.isoformat(),
-        "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
+        "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,"
+                  "EdgeResponseStatus,EdgeStartTimestamp,RayID",
     }
     response = requests.get(url, headers=headers, params=params)
     return [
@@ -100,7 +102,8 @@ def save_and_transmit_logs(logs, end_time):
         cef_record = convert_to_cef(record)
 
         # Log to syslog server and file
-        syslog_handler.handle(logging.LogRecord("syslog_logger", logging.INFO, filepath, 0, cef_record, [], None))
+        syslog_handler.handle(logging.LogRecord("syslog_logger", logging.INFO, filepath, 0, cef_record,
+                                                [], None))
         with open(filepath, "a") as file:
             file.write(cef_record + "\n")
 
