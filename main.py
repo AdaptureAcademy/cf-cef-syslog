@@ -60,7 +60,7 @@ def update_last_processed_timestamp(timestamp):
         file.write(timestamp.isoformat())
 
 
-def fetch_cloudflare_logs(start_time, end_time):
+def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
     headers = {
         "X-Auth-Email": EMAIL,
         "X-Auth-Key": API_KEY,
@@ -81,6 +81,7 @@ def fetch_cloudflare_logs(start_time, end_time):
         json.loads(line) for line in response.iter_lines(decode_unicode=True) if line
     ]
 
+
 def save_and_transmit_logs(logs, end_time):
     latest_timestamp = None  # Initialize variable to track the latest timestamp
 
@@ -96,20 +97,17 @@ def save_and_transmit_logs(logs, end_time):
         directory = f"./log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
         os.makedirs(directory, exist_ok=True)
         filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
+        cef_record = convert_to_cef(record)
 
-    with open(filepath, "a") as file:
-        for record in logs:
-            cef_record = convert_to_cef(record)
-            # Transmit log to syslog server
-            logger.info(cef_record)
+        # Log to syslog server and file
+        syslog_handler.handle(logging.LogRecord("syslog_logger", logging.INFO, filepath, 0, cef_record, [], None))
+        with open(filepath, "a") as file:
             file.write(cef_record + "\n")
-
-    # Transmit log to syslog server
-    # logger.info(cef_record)
 
     # Update the last_processed_timestamp to the end_time of this execution
     if logs:  # Update only if there are new logs processed
         update_last_processed_timestamp(end_time)
+
 
 def convert_to_cef(record: dict):
     # CEF:Version|Device Vendor|Device Product|Device Version|Device Event Class ID|Name|Severity|
