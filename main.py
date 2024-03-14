@@ -25,7 +25,7 @@ ZONE_ID = os.getenv("ZONE_ID")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # Syslog server configuration
-SYSLOG_SERVER = "customhost"  # "192.168.56.20"  # "customhost"
+SYSLOG_SERVER = "192.168.56.20"
 SYSLOG_PORT = 514
 
 # Path to the state file
@@ -171,7 +171,7 @@ def send_email(text: str):
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()  # Start TLS encryption
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.login(SENDER_EMAIL, EMAIL_PASSWORD)
             server.send_message(msg)
             print("Email sent successfully")
     except Exception as e:
