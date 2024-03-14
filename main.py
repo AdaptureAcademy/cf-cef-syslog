@@ -6,6 +6,7 @@ from dateutil import parser, tz
 import requests
 from dotenv import load_dotenv
 import sys
+import socket
 
 
 # TODO:
@@ -29,7 +30,7 @@ SYSLOG_PORT = 514
 STATE_FILE_PATH = "last_processed_timestamp.txt"
 
 # Setup logging to syslog server
-syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
+syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(syslog_handler)
