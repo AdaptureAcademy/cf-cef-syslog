@@ -1,4 +1,4 @@
-# Cloudflare Log Processor README
+# Cloudflare Log Transformation and Transmission
 
 ## Overview
 This Python script is designed to fetch, transform, and transmit Cloudflare log data in real-time. Utilizing Cloudflare's Logpush service and a WebSocket connection, the script converts incoming log data to the Common Event Format (CEF) and forwards it to a configured syslog server. Additionally, logs are saved locally in a structured directory format.
