@@ -30,9 +30,20 @@ STATE_FILE_PATH = "last_processed_timestamp.txt"
 
 # Setup logging to syslog server
 syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(syslog_handler)
+syslog_handler.setLevel(logging.INFO)
+syslog_logger = logging.getLogger("syslog_logger")
+syslog_logger.addHandler(syslog_handler)
+error_file_handler = logging.handlers.RotatingFileHandler(
+    "error.log", maxBytes=10000, backupCount=10
+)
+error_file_handler.setLevel(logging.ERROR)
+info_file_handler = logging.handlers.RotatingFileHandler(
+    "info.log", maxBytes=15000, backupCount=10
+)
+info_file_handler.setLevel(logging.INFO)
+file_logger = logging.getLogger("file_logger")
+file_logger.addHandler(error_file_handler)
+file_logger.addHandler(info_file_handler)
 
 
 def get_last_processed_timestamp():
