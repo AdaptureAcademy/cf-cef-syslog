@@ -72,6 +72,9 @@ async def create_instant_logs_job():
         file_logger.info(f"WebSocket URL: {websocket_url}")
         return websocket_url
     else:
+        print(response)
+        print(response.status_code)
+        print(response.json)
         file_logger.error("Failed to create Instant Logs job")
         send_email("Instant Logs Job Creation Failed")
         return None
