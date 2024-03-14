@@ -28,6 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       sed -i 's/#\$UDPServerRun 514/\$UDPServerRun 514/' /etc/rsyslog.conf
       systemctl start rsyslog
       systemctl enable rsyslog
+      firewall-cmd --permanent --add-port=514/udp && firewall-cmd --reload
     SHELL
   end
 end
