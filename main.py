@@ -22,7 +22,7 @@ EMAIL = os.getenv("CLOUDFLARE_EMAIL")
 ZONE_ID = os.getenv("ZONE_ID")
 
 # Syslog server configuration
-SYSLOG_SERVER = "localhost"
+SYSLOG_SERVER = "192.168.56.20"
 SYSLOG_PORT = 514
 
 # Path to the state file
