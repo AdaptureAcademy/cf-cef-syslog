@@ -162,7 +162,6 @@ def send_email(text: str):
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
     SENDER_EMAIL = "adapturetest@gmail.com"
-    SENDER_PASSWORD = "qavz tjug vfjr mcki"
     RECIPIENTS = ["cmartinez@adapture.com", "abaig@adapture.com"]
     msg = EmailMessage()
     msg["From"] = SENDER_EMAIL
