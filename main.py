@@ -1,16 +1,16 @@
+import asyncio
 import json
 import logging.handlers
 import os
-from datetime import datetime, timedelta, timezone
-from dateutil import tz, parser as date_parser
-import requests
-from dotenv import load_dotenv
-import sys
 import smtplib
+import sys
+from datetime import timezone
 from email.message import EmailMessage
 
-# TODO:
-# 1. Email Notification if script stops running or throws an error
+import dateutil.parser
+import requests
+import websockets
+from dotenv import load_dotenv
 
 print("Python %s on %s" % (sys.version, sys.platform))
 
@@ -53,88 +53,79 @@ file_logger.addHandler(error_file_handler)
 file_logger.addHandler(info_file_handler)
 
 
-def get_last_processed_timestamp():
-    try:
-        with open(STATE_FILE_PATH, "r") as file:
-            last_processed_timestamp_str = file.read().strip()
-            return date_parser.parse(last_processed_timestamp_str)
-    except FileNotFoundError:
-        file_logger.info("State file not found. Assuming first run.")
-        return datetime.now(tz.tzutc()) - timedelta(hours=1)
-
-
-def update_last_processed_timestamp(timestamp):
-    # chek if STATE_FILE_PATH exists and log the first time it is created
-    if not os.path.exists(STATE_FILE_PATH):
-        file_logger.info(f"Creating file {STATE_FILE_PATH}")
-    with open(STATE_FILE_PATH, "w") as file:
-        file.write(timestamp.isoformat())
-
-
-def fetch_cloudflare_logs(start_time: datetime, end_time: datetime):
+async def create_instant_logs_job():
+    url = f"https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/logpush/edge/jobs"
     headers = {
         "X-Auth-Email": EMAIL,
         "X-Auth-Key": API_KEY,
         "Content-Type": "application/json",
     }
-    # headers = {
-    #     "Authentication": BEARER,
-    #     "Content-Type": "application/json",
-    # }
-    url = f"https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/logs/received"
-    params = {
-        "start": start_time.isoformat(),
-        "end": end_time.isoformat(),
+    data = {
         "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
+        "sample": 1,
+        "filter": "",
+        "kind": "instant-logs"
     }
-    try:
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        file_logger.error(f"Failed to fetch logs: {e}")
-        return []
-    return [
-        json.loads(line) for line in response.iter_lines(decode_unicode=True) if line
-    ]
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 201:
+        websocket_url = response.json()["result"]["destination_conf"]
+        file_logger.info(f"WebSocket URL: {websocket_url}")
+        return websocket_url
+    else:
+        file_logger.error("Failed to create Instant Logs job")
+        send_email("Instant Logs Job Creation Failed")
+        return None
 
 
-def save_and_transmit_logs(logs, end_time):
-    try:
-        latest_timestamp = None  # Initialize variable to track the latest timestamp
+async def connect_and_process_logs(websocket_url):
+    async with websockets.connect(websocket_url) as websocket:
+        try:
+            while True:
+                log_data = await websocket.recv()
+                file_logger.info(f"Log data received: {log_data}")
+                # Split the received data into lines
+                log_lines = log_data.splitlines()
+                print("Transforming and transmitting logs...")
+                for log_line in log_lines:
+                    try:
+                        # Parse each line as a separate JSON object
+                        log = json.loads(log_line)
+                        # Ensure log is a dictionary before passing to convert_to_cef
+                        if isinstance(log, dict):
+                            # Convert to CEF
+                            cef_log = convert_to_cef(log)
+                            # Handle syslog transmission
+                            syslog_logger.handle(
+                                logging.LogRecord(
+                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                )
+                            )
+                            # Save log locally
+                            await save_log_locally(log, cef_log)
+                        else:
+                            file_logger.error(f"Received log entry is not in expected format: {log}")
+                    except json.JSONDecodeError as e:
+                        file_logger.error(f"Error decoding log line from JSON: {e}")
+        except websockets.exceptions.ConnectionClosed as e:
+            file_logger.error(f"WebSocket connection closed: {e}")
+            send_email("WebSocket Connection Closed")
 
-        for record in logs:
-            # Convert EdgeStartTimestamp to datetime object
-            timestamp = datetime.fromtimestamp(
-                record["EdgeStartTimestamp"] / 1_000_000_000.0, tz=timezone.utc
-            )
 
-            # Update latest_timestamp if this log's timestamp is newer
-            if latest_timestamp is None or timestamp > latest_timestamp:
-                latest_timestamp = timestamp
+async def save_log_locally(log, cef_log):
+    # Use dateutil.parser.isoparse for compatibility with ISO 8601 formatted strings
+    timestamp = dateutil.parser.isoparse(log["EdgeStartTimestamp"])
 
-            # Directory structure and file handling remains the same
-            directory = f"./log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
-            os.makedirs(directory, exist_ok=True)
-            filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
-            cef_record = convert_to_cef(record)
+    # If your environment is set to use UTC and you want to ensure it, you can replace the timezone
+    timestamp = timestamp.replace(tzinfo=timezone.utc)
 
-            # Log to syslog server and file
-            syslog_handler.handle(
-                logging.LogRecord(
-                    "syslog_logger", logging.INFO, filepath, 0, cef_record, [], None
-                )
-            )
-            with open(filepath, "a") as file:
-                file.write(cef_record + "\n")
+    directory = f"./log/cloudflare/{timestamp.strftime('%Y')}/{timestamp.strftime('%B')}/{timestamp.strftime('%d')}"
+    os.makedirs(directory, exist_ok=True)
+    filepath = os.path.join(directory, f"{timestamp.strftime('%H')}:00.cef")
 
-        # Update the last_processed_timestamp to the end_time of this execution
-        if logs:  # Update only if there are new logs processed
-            update_last_processed_timestamp(end_time)
-    except Exception as e:
-        file_logger.error("An error occurred while saving logs", exc_info=True)
-        syslog_logger.error("An error occurred while saving logs", exc_info=True)
-        # email notification to be added
-        raise e
+    with open(filepath, "a") as file:
+        file.write(cef_log + "\n")
+
+    print(f"Log saved locally: {filepath}")
 
 
 def convert_to_cef(record: dict):
@@ -178,42 +169,12 @@ def send_email(text: str):
         print(f"Failed to send email: {str(e)}")
 
 
-def main():
-    try:
-        current_time = datetime.now(tz.tzutc())
-        last_processed_time = get_last_processed_timestamp()
-
-        # Loop through each hour from the last_processed_time up to the current_time
-        while last_processed_time < current_time:
-            # Calculate the start and end time for the current hour block
-            start_time = last_processed_time
-            end_time = min(start_time + timedelta(hours=1), current_time)
-
-            # Update last_processed_time for the next iteration
-            last_processed_time = end_time
-
-            # Fetch logs for the current hour block
-            logs = fetch_cloudflare_logs(start_time, end_time)
-
-            # Process and save the logs
-            if logs:
-                save_and_transmit_logs(logs, end_time)
-                # Update the last_processed_timestamp to the end_time of this hour block
-                update_last_processed_timestamp(end_time)
-                print(f"Logs between {start_time} and {end_time} have been processed.")
-            else:
-                print(f"No new logs to process between {start_time} and {end_time}.")
-
-    except Exception as e:
-        file_logger.error("An error occurred", exc_info=True)
-        syslog_logger.error("An error occurred", exc_info=True)
-        # email notification to be added
-        raise e
+# Main function to run the script
+async def main():
+    websocket_url = await create_instant_logs_job()
+    if websocket_url:
+        await connect_and_process_logs(websocket_url)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        send_email(f"An error occurred: {str(e)}")
-        pass
+    asyncio.run(main())
