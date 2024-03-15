@@ -4,3 +4,4 @@ venv
 .vscode
 old.py
 .env
+temp.txt

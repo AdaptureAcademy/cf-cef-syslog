@@ -22,11 +22,10 @@ API_KEY = os.getenv("CLOUDFLARE_API_KEY")
 EMAIL = os.getenv("CLOUDFLARE_EMAIL")
 # BEARER = f"Bearer {os.getenv("CLOUDFLARE_BEARER")}""
 ZONE_ID = os.getenv("ZONE_ID")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # Syslog server configuration
-SYSLOG_SERVER = "192.168.56.20"
-SYSLOG_PORT = 514
+SYSLOG_SERVER = os.getenv("SYSLOG_ADDRESS")
+SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 
 # Path to the state file
 STATE_FILE_PATH = "last_processed_timestamp.txt"
@@ -55,17 +54,32 @@ file_logger.addHandler(info_file_handler)
 
 async def create_instant_logs_job():
     url = f"https://api.cloudflare.com/client/v4/zones/{ZONE_ID}/logpush/edge/jobs"
-    headers = {
-        "X-Auth-Email": EMAIL,
-        "X-Auth-Key": API_KEY,
-        "Content-Type": "application/json",
-    }
+
+    # Determine the authentication method based on the available environment variables
+    if API_KEY and EMAIL:
+        headers = {
+            "X-Auth-Email": EMAIL,
+            "X-Auth-Key": API_KEY,
+            "Content-Type": "application/json",
+        }
+    elif os.getenv("CLOUDFLARE_API_TOKEN"):
+        headers = {
+            "Authorization": "Bearer " + os.getenv("CLOUDFLARE_API_TOKEN"),
+            "Content-Type": "application/json",
+        }
+    else:
+        file_logger.error("Authentication information is missing. Please provide an API key and email or an API token.")
+        send_email("Authentication information is missing for Cloudflare API.")
+        return None
+
     data = {
-        "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
+        "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,"
+                  "EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
         "sample": 1,
         "filter": "",
         "kind": "instant-logs"
     }
+
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 201:
         websocket_url = response.json()["result"]["destination_conf"]
@@ -77,9 +91,11 @@ async def create_instant_logs_job():
         return None
 
 
-async def connect_and_process_logs(websocket_url):
-    async with websockets.connect(websocket_url) as websocket:
-        try:
+async def connect_and_process_logs(websocket_url, attempt=1):
+    try:
+        async with websockets.connect(websocket_url) as websocket:
+            file_logger.info(f"Successfully connected to WebSocket on attempt {attempt}.")
+            print(f"Successfully connected to WebSocket on attempt {attempt}.")
             while True:
                 log_data = await websocket.recv()
                 file_logger.info(f"Log data received: {log_data}")
@@ -106,9 +122,17 @@ async def connect_and_process_logs(websocket_url):
                             file_logger.error(f"Received log entry is not in expected format: {log}")
                     except json.JSONDecodeError as e:
                         file_logger.error(f"Error decoding log line from JSON: {e}")
-        except websockets.exceptions.ConnectionClosed as e:
-            file_logger.error(f"WebSocket connection closed: {e}")
-            send_email("WebSocket Connection Closed")
+    except websockets.exceptions.ConnectionClosed:
+        file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}")
+        if attempt <= 3:  # Set a maximum number of reconnection attempts
+            await asyncio.sleep(10)  # Wait a bit before retrying
+            new_websocket_url = await create_instant_logs_job()  # Recreate the Instant Logs job
+            if new_websocket_url:
+                await connect_and_process_logs(new_websocket_url, attempt + 1)
+            else:
+                send_email("Failed to recreate Instant Logs job for reconnection.")
+        else:
+            send_email("Exceeded maximum reconnection attempts for WebSocket session.")
 
 
 async def save_log_locally(log, cef_log):
@@ -152,13 +176,19 @@ def convert_to_cef(record: dict):
 def send_email(text: str):
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SENDER_EMAIL = "adapturetest@gmail.com"
-    RECIPIENTS = ["cmartinez@adapture.com", "abaig@adapture.com"]
+    SENDER_EMAIL = os.getenv('SENDER_EMAIL')
+    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+    # Retrieve and process the recipient emails from .env
+    recipients_str = os.getenv("EMAIL_RECIPIENTS", "")
+    RECIPIENTS = recipients_str.split(",")  # Split the string into a list of emails
+
     msg = EmailMessage()
     msg["From"] = SENDER_EMAIL
-    msg["To"] = ", ".join(RECIPIENTS)
-    msg["Subject"] = "TESTING CELERY Catching Signals and Sending Emails"
+    msg["To"] = ", ".join(RECIPIENTS)  # Use the list of emails
+    msg["Subject"] = os.getenv("EMAIL_SUBJECT")
     msg.set_content(text)
+
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()  # Start TLS encryption
@@ -173,11 +203,14 @@ def send_email(text: str):
 async def main():
     websocket_url = await create_instant_logs_job()
     if websocket_url:
-        try:
-            await connect_and_process_logs(websocket_url)
-        except Exception as e:
-            print(f"Error: {e}")
+        await connect_and_process_logs(websocket_url)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        error_message = f"Script crashed due to an unhandled exception: {str(e)}"
+        print(error_message)
+        send_email(error_message)
+        raise e  # Optionally re-raise the exception if you want the script to exit with an error status.
