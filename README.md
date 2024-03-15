@@ -26,9 +26,9 @@ Use `nvm` to install Node.js and then install PM2 globally:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 source ~/.bashrc
-nvm install 18.16.0
-nvm use 18.16.0
-npm install pm2@latest -g
+nvm install 15.0.1
+nvm use 15.0.1
+npm install pm2
 ```
 
 ### 3. Python Virtual Environment and Dependencies
