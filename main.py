@@ -25,13 +25,13 @@ ZONE_ID = os.getenv("ZONE_ID")
 
 # Syslog server configuration
 SYSLOG_SERVER = os.getenv("SYSLOG_ADDRESS")
-SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
+SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))  # type: ignore
 
 # Path to the state file
 STATE_FILE_PATH = "last_processed_timestamp.txt"
 
 # Setup logging to syslog server
-syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
+syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))  # type: ignore
 syslog_handler.setLevel(logging.INFO)
 syslog_logger = logging.getLogger("syslog_logger")
 syslog_logger.addHandler(syslog_handler)
@@ -64,20 +64,22 @@ async def create_instant_logs_job():
         }
     elif os.getenv("CLOUDFLARE_API_TOKEN"):
         headers = {
-            "Authorization": "Bearer " + os.getenv("CLOUDFLARE_API_TOKEN"),
+            "Authorization": "Bearer " + os.getenv("CLOUDFLARE_API_TOKEN"),  # type: ignore
             "Content-Type": "application/json",
         }
     else:
-        file_logger.error("Authentication information is missing. Please provide an API key and email or an API token.")
+        file_logger.error(
+            "Authentication information is missing. Please provide an API key and email or an API token."
+        )
         send_email("Authentication information is missing for Cloudflare API.")
         return None
 
     data = {
         "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,"
-                  "EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
+        "EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
         "sample": 1,
         "filter": "",
-        "kind": "instant-logs"
+        "kind": "instant-logs",
     }
 
     response = requests.post(url, headers=headers, json=data)
@@ -94,7 +96,9 @@ async def create_instant_logs_job():
 async def connect_and_process_logs(websocket_url, attempt=1):
     try:
         async with websockets.connect(websocket_url) as websocket:
-            file_logger.info(f"Successfully connected to WebSocket on attempt {attempt}.")
+            file_logger.info(
+                f"Successfully connected to WebSocket on attempt {attempt}."
+            )
             print(f"Successfully connected to WebSocket on attempt {attempt}.")
             while True:
                 log_data = await websocket.recv()
@@ -113,20 +117,32 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                             # Handle syslog transmission
                             syslog_logger.handle(
                                 logging.LogRecord(
-                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                    "syslog_logger",
+                                    logging.INFO,
+                                    "",
+                                    0,
+                                    cef_log,
+                                    [],
+                                    None,
                                 )
                             )
                             # Save log locally
                             await save_log_locally(log, cef_log)
                         else:
-                            file_logger.error(f"Received log entry is not in expected format: {log}")
+                            file_logger.error(
+                                f"Received log entry is not in expected format: {log}"
+                            )
                     except json.JSONDecodeError as e:
                         file_logger.error(f"Error decoding log line from JSON: {e}")
     except websockets.exceptions.ConnectionClosed:
-        file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}")
+        file_logger.error(
+            f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}"
+        )
         if attempt <= 3:  # Set a maximum number of reconnection attempts
             await asyncio.sleep(10)  # Wait a bit before retrying
-            new_websocket_url = await create_instant_logs_job()  # Recreate the Instant Logs job
+            new_websocket_url = (
+                await create_instant_logs_job()
+            )  # Recreate the Instant Logs job
             if new_websocket_url:
                 await connect_and_process_logs(new_websocket_url, attempt + 1)
             else:
@@ -176,7 +192,7 @@ def convert_to_cef(record: dict):
 def send_email(text: str):
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SENDER_EMAIL = os.getenv('SENDER_EMAIL')
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
     EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
     # Retrieve and process the recipient emails from .env
@@ -184,15 +200,15 @@ def send_email(text: str):
     RECIPIENTS = recipients_str.split(",")  # Split the string into a list of emails
 
     msg = EmailMessage()
-    msg["From"] = SENDER_EMAIL
+    msg["From"] = SENDER_EMAIL  # type: ignore
     msg["To"] = ", ".join(RECIPIENTS)  # Use the list of emails
-    msg["Subject"] = os.getenv("EMAIL_SUBJECT")
+    msg["Subject"] = os.getenv("EMAIL_SUBJECT")  # type: ignore
     msg.set_content(text)
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()  # Start TLS encryption
-            server.login(SENDER_EMAIL, EMAIL_PASSWORD)
+            server.login(SENDER_EMAIL, EMAIL_PASSWORD)  # type: ignore
             server.send_message(msg)
             print("Email sent successfully")
     except Exception as e:
