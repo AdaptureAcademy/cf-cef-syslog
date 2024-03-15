@@ -113,15 +113,6 @@ To monitor syslog messages on the server:
 sudo tail -f /var/log/messages
 ```
 
-### 9. Firewall Configuration on Client Machine
-
-Ensure the client's firewall is configured to allow the necessary outbound traffic to the syslog server:
-
-```bash
-# Example command, adjust as needed for your environment
-firewall-cmd --permanent --add-port=514/udp && firewall-cmd --reload
-```
-
 ## Documentation and Support
 
 For further documentation and support, refer to the official PM2 and Python virtual environment documentation, or consult the Cloudflare API documentation for more details on the logging features used by this script.
