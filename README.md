@@ -15,7 +15,7 @@ This guide provides detailed instructions for deploying the Cloudflare Logger sc
 First, clone the repository containing the Cloudflare Logger script to your local machine:
 
 ```bash
-git clone https://github.com/YourRepository/cf-cef-syslog.git --branch websocket-realtime
+git clone https://<username>:<github_PAT>@github.com/YourRepository/cf-cef-syslog.git --branch websocket-realtime
 cd cf-cef-syslog
 ```
 
