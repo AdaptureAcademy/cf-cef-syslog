@@ -1,55 +1,129 @@
-# Cloudflare Log Transformation and Transmission
+# Cloudflare Logger Setup Guide
 
-## Overview
-This Python script is designed to fetch, transform, and transmit Cloudflare log data in real-time. Utilizing Cloudflare's Logpush service and a WebSocket connection, the script converts incoming log data to the Common Event Format (CEF) and forwards it to a configured syslog server. Additionally, logs are saved locally in a structured directory format.
+This guide provides detailed instructions for deploying the Cloudflare Logger script on CentOS-based client machines. It covers setting up a virtual environment, installing dependencies, configuring the rsyslog server to receive logs, and running the script continuously using PM2. This script monitors the traffic on a Cloudflare account and sends logs to a remote syslog server in CEF format.
 
-## Features
-- **WebSocket Connection:** Real-time log data fetching from Cloudflare.
-- **Log Transformation:** Converts log data to CEF for standardized processing.
-- **Syslog Transmission:** Forwards transformed logs to a syslog server.
-- **Local Log Storage:** Saves log data locally for backup and further analysis.
-- **Error Handling:** Notifications via email for critical failures or service interruptions.
+## Prerequisites
 
-## Requirements
-- Python 3.10 or higher.
-- `websockets`, `requests`, `python-dotenv`, `dateutil` libraries.
-- Access to Cloudflare API with valid credentials.
-- A configured `.env` file with necessary API keys and configurations.
+- A CentOS (or any Red Hat-based system) for both the client and server.
+- Python 3.8 or higher installed on the client machine.
+- Node.js installed on the client machine (for PM2 management).
 
 ## Setup Instructions
-1. Ensure Python and pip are installed on your system.
-2. Clone this repository or download the script.
-3. Install required Python libraries:
-   ```
-   pip install websockets requests python-dotenv python-dateutil
-   ```
-4. Create a `.env` file in the root directory with the following keys:
-   ```
-   CLOUDFLARE_API_KEY=your_cloudflare_api_key
-   CLOUDFLARE_EMAIL=your_cloudflare_email
-   ZONE_ID=your_zone_id
-   EMAIL_PASSWORD=your_email_password
-   ```
-5. Adjust the syslog server settings in the script as needed.
 
-## Testing with Vagrant and CentOS
-The included Vagrantfile configures a testing environment with two CentOS 7 VMs - one acting as the syslog client (running this script) and the other as the syslog server.
+### 1. Clone the Script Repository
 
-### Steps:
-1. Install Vagrant and VirtualBox.
-2. Run `vagrant up` to initialize and start the VMs.
-3. SSH into the syslog client VM: `vagrant ssh syslog_client`.
-4. Set up your environment and run the script inside the VM.
+First, clone the repository containing the Cloudflare Logger script to your local machine:
 
-### Syslog Server Configuration:
-- Pre-configured to listen on UDP port 514.
-- Validates real-time log forwarding and local storage.
-- Allows for the testing of the script's full functionality in a controlled environment.
-
-## Usage
-Run the script with:
-```
-python3 main.py
+```bash
+git clone https://github.com/YourRepository/cf-cef-syslog.git --branch websocket-realtime
+cd cf-cef-syslog
 ```
 
-Logs are fetched from Cloudflare, converted to CEF, transmitted to the specified syslog server, and saved locally in a structured directory format. Email notifications will be sent for critical errors or interruptions.
+### 2. Install Node.js and PM2
+
+Use `nvm` to install Node.js and then install PM2 globally:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+source ~/.bashrc
+nvm install 18.16.0
+nvm use 18.16.0
+npm install pm2@latest -g
+```
+
+### 3. Python Virtual Environment and Dependencies
+
+Create and activate a Python virtual environment, then install the required dependencies:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 4. Configure Syslog Server (Red Hat)
+
+On the server machine, perform the following steps:
+
+1. **Install rsyslog:**
+
+   ```bash
+   yum install -y rsyslog
+   ```
+
+2. **Configure rsyslog:**
+
+   Edit `/etc/rsyslog.conf` to enable UDP listening:
+
+   ```bash
+   $ModLoad imudp
+   $UDPServerRun 514
+   ```
+
+3. **Restart rsyslog and configure the firewall:**
+
+   ```bash
+   systemctl restart rsyslog
+   firewall-cmd --permanent --add-port=514/udp
+   firewall-cmd --reload
+   ```
+
+### 5. Create and Configure the .env File
+
+Create a `.env` file in the project root with the following fields. Ensure to replace the placeholder values with your actual data:
+
+```plaintext
+SYSLOG_ADDRESS=192.168.56.20
+SYSLOG_PORT=514
+
+CLOUDFLARE_API_KEY=<your_cloudflare_api_key>
+CLOUDFLARE_EMAIL=<your_cloudflare_email>
+
+# Use EITHER CLOUDFLARE_API_KEY or CLOUDFLARE_API_TOKEN
+CLOUDFLARE_API_TOKEN=<your_cloudflare_api_token>
+ZONE_ID=<your_zone_id>
+
+SENDER_EMAIL=<your_sender_email>
+EMAIL_PASSWORD=<your_email_password>
+EMAIL_RECIPIENTS=recipient1@example.com,recipient2@example.com
+EMAIL_SUBJECT="Cloudflare Logs Job Alert"
+```
+
+### 6. Running the Script with PM2
+
+Ensure you're in the script's directory, then start the script with PM2:
+
+```bash
+pm2 start "python3 main.py" --name "cloudflare_logger"
+pm2 save
+pm2 startup
+```
+
+### 7. Monitor and Manage the Script
+
+- **To view logs:** `pm2 logs cloudflare_logger`
+- **To stop the script:** `pm2 stop cloudflare_logger`
+- **To restart the script:** `pm2 restart cloudflare_logger`
+
+### 8. Monitor Syslog Messages
+
+To monitor syslog messages on the server:
+
+```bash
+sudo tail -f /var/log/messages
+```
+
+### 9. Firewall Configuration on Client Machine
+
+Ensure the client's firewall is configured to allow the necessary outbound traffic to the syslog server:
+
+```bash
+# Example command, adjust as needed for your environment
+firewall-cmd --permanent --add-rule...
+```
+
+## Documentation and Support
+
+For further documentation and support, refer to the official PM2 and Python virtual environment documentation, or consult the Cloudflare API documentation for more details on the logging features used by this script.
+
+---
