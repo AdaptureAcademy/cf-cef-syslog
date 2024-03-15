@@ -119,7 +119,7 @@ Ensure the client's firewall is configured to allow the necessary outbound traff
 
 ```bash
 # Example command, adjust as needed for your environment
-firewall-cmd --permanent --add-rule...
+firewall-cmd --permanent --add-port=514/udp && firewall-cmd --reload
 ```
 
 ## Documentation and Support
