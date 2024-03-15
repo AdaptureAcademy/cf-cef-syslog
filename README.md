@@ -94,16 +94,16 @@ EMAIL_SUBJECT="Cloudflare Logs Job Alert"
 Ensure you're in the script's directory, then start the script with PM2:
 
 ```bash
-pm2 start "python3 main.py" --name "cloudflare_logger"
-pm2 save
-pm2 startup
+npx pm2 start "python3 main.py" --name "cloudflare_logger"
+npx pm2 save
+npx pm2 startup
 ```
 
 ### 7. Monitor and Manage the Script
 
-- **To view logs:** `pm2 logs cloudflare_logger`
-- **To stop the script:** `pm2 stop cloudflare_logger`
-- **To restart the script:** `pm2 restart cloudflare_logger`
+- **To view logs:** `npx pm2 logs cloudflare_logger`
+- **To stop the script:** `npx pm2 stop cloudflare_logger`
+- **To restart the script:** `npx pm2 restart cloudflare_logger`
 
 ### 8. Monitor Syslog Messages
 
