@@ -15,7 +15,7 @@ This guide provides detailed instructions for deploying the Cloudflare Logger sc
 First, clone the repository containing the Cloudflare Logger script to your local machine:
 
 ```bash
-git clone https://github.com/YourRepository/cf-cef-syslog.git --branch websocket-realtime
+git clone https://<username>:<github_PAT>@github.com/AdaptureAcademy/cf-cef-syslog.git --branch websocket-realtime
 cd cf-cef-syslog
 ```
 
@@ -26,9 +26,9 @@ Use `nvm` to install Node.js and then install PM2 globally:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 source ~/.bashrc
-nvm install 18.16.0
-nvm use 18.16.0
-npm install pm2@latest -g
+nvm install 15.0.1
+nvm use 15.0.1
+npm install pm2
 ```
 
 ### 3. Python Virtual Environment and Dependencies
@@ -94,16 +94,16 @@ EMAIL_SUBJECT="Cloudflare Logs Job Alert"
 Ensure you're in the script's directory, then start the script with PM2:
 
 ```bash
-pm2 start "python3 main.py" --name "cloudflare_logger"
-pm2 save
-pm2 startup
+npx pm2 start "python3 main.py" --name "cloudflare_logger"
+npx pm2 save
+npx pm2 startup
 ```
 
 ### 7. Monitor and Manage the Script
 
-- **To view logs:** `pm2 logs cloudflare_logger`
-- **To stop the script:** `pm2 stop cloudflare_logger`
-- **To restart the script:** `pm2 restart cloudflare_logger`
+- **To view logs:** `npx pm2 logs cloudflare_logger`
+- **To stop the script:** `npx pm2 stop cloudflare_logger`
+- **To restart the script:** `npx pm2 restart cloudflare_logger`
 
 ### 8. Monitor Syslog Messages
 
@@ -111,15 +111,6 @@ To monitor syslog messages on the server:
 
 ```bash
 sudo tail -f /var/log/messages
-```
-
-### 9. Firewall Configuration on Client Machine
-
-Ensure the client's firewall is configured to allow the necessary outbound traffic to the syslog server:
-
-```bash
-# Example command, adjust as needed for your environment
-firewall-cmd --permanent --add-rule...
 ```
 
 ## Documentation and Support
