@@ -4,8 +4,10 @@ import logging.handlers
 import os
 import smtplib
 import sys
+from datetime import datetime, timedelta
 from datetime import timezone
 from email.message import EmailMessage
+from typing import cast
 
 import dateutil.parser
 import requests
@@ -124,6 +126,7 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                         file_logger.error(f"Error decoding log line from JSON: {e}")
     except websockets.exceptions.ConnectionClosed:
         file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}")
+        cleanup_old_logs('./log/cloudflare', retention_days=30)
         if attempt <= 3:  # Set a maximum number of reconnection attempts
             await asyncio.sleep(10)  # Wait a bit before retrying
             new_websocket_url = await create_instant_logs_job()  # Recreate the Instant Logs job
@@ -153,24 +156,44 @@ async def save_log_locally(log, cef_log):
 
 
 def convert_to_cef(record: dict):
-    # CEF:Version|Device Vendor|Device Product|Device Version|Device Event Class ID|Name|Severity|
-    cef_header = "CEF:0|NetWitness|Audit|1.0|100|Log Received|1|"
+    # Adjusted to ensure no extra space after CEF:0
+    cef_header = f"CEF:0|Cloudflare|TrafficLogs|1.0.0|0.0|Log Received|1|"
     cef_mapping = {
-        "src": record.get("ClientIP"),
-        "dhost": record.get("ClientRequestHost"),
-        "requestMethod": record.get("ClientRequestMethod"),
-        "request": record.get("ClientRequestURI"),
-        "end": record.get("EdgeEndTimestamp"),
-        "bytesOut": record.get("EdgeResponseBytes"),
-        "responseCode": record.get("EdgeResponseStatus"),
-        "start": record.get("EdgeStartTimestamp"),
-        "cn1": record.get("RayID"),
+        "src": record.get("ClientIP", ""),
+        "dhost": record.get("ClientRequestHost", ""),
+        "requestMethod": record.get("ClientRequestMethod", ""),
+        "request": record.get("ClientRequestURI", ""),
+        "end": record.get("EdgeEndTimestamp", ""),
+        "bytesOut": str(record.get("EdgeResponseBytes", "")),
+        "responseCode": str(record.get("EdgeResponseStatus", "")),
+        "start": record.get("EdgeStartTimestamp", ""),
+        "cn1": record.get("RayID", ""),
         "cn1Label": "RayID",
     }
-    cef_record = cef_header + " ".join(
-        f"{key}={value}" for key, value in cef_mapping.items() if value is not None
-    )
+    # Generate the CEF log string, ensuring no extra spaces are introduced
+    cef_record_components = [f"{key}={value}" for key, value in cef_mapping.items() if value]
+    cef_record = cef_header + ' '.join(cef_record_components)
+
     return cef_record
+
+
+def cleanup_old_logs(log_directory: str, retention_days: int = 1):
+    """Deletes log files older than retention_days in the specified directory."""
+    current_time = datetime.now()
+    for root, dirs, files in os.walk(log_directory, topdown=False):
+        for name in files:
+            file_path = os.path.join(root, name)
+            file_path_str = cast(str, file_path)  # Explicitly cast to str if necessary
+            file_mod_time = datetime.fromtimestamp(os.path.getmtime(file_path_str))
+            if current_time - file_mod_time > timedelta(days=retention_days):
+                os.remove(file_path_str)
+                file_logger.info(f"Deleted old log file: {file_path_str}")
+        for name in dirs:
+            dir_path = os.path.join(root, name)
+            dir_path_str = cast(str, dir_path)  # Explicitly cast to str if necessary
+            if not os.listdir(dir_path_str):  # Check if the directory is empty
+                os.rmdir(dir_path_str)
+                file_logger.info(f"Deleted empty directory: {dir_path_str}")
 
 
 def send_email(text: str):
@@ -202,6 +225,7 @@ def send_email(text: str):
 # Main function to run the script
 async def main():
     websocket_url = await create_instant_logs_job()
+    cleanup_old_logs('./log/cloudflare', retention_days=30)
     if websocket_url:
         await connect_and_process_logs(websocket_url)
 
