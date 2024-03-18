@@ -36,6 +36,9 @@ syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_P
 syslog_handler.setLevel(logging.INFO)
 syslog_logger = logging.getLogger("syslog_logger")
 syslog_logger.addHandler(syslog_handler)
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+syslog_handler.setFormatter(formatter)
+
 # Setup logging to file
 formatter = logging.Formatter(fmt="%(asctime)s %(levelname)-8s %(message)s")
 error_file_handler = logging.handlers.RotatingFileHandler(
