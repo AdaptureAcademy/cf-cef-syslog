@@ -22,7 +22,6 @@ load_dotenv()
 # Retrieve API key, email, and zone ID from environment variables
 API_KEY = os.getenv("CLOUDFLARE_API_KEY")
 EMAIL = os.getenv("CLOUDFLARE_EMAIL")
-# BEARER = f"Bearer {os.getenv("CLOUDFLARE_BEARER")}""
 ZONE_ID = os.getenv("ZONE_ID")
 
 # Syslog server configuration
