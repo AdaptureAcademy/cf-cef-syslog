@@ -97,6 +97,7 @@ async def create_instant_logs_job():
 
 async def connect_and_process_logs(websocket_url, attempt=1):
     try:
+        file_logger.info(f"Attempting to connect to WebSocket: {websocket_url}")
         async with websockets.connect(websocket_url) as websocket:
             file_logger.info(f"Successfully connected to WebSocket on attempt {attempt}.")
             print(f"Successfully connected to WebSocket on attempt {attempt}.")
@@ -128,8 +129,10 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                     except json.JSONDecodeError as e:
                         file_logger.error(f"Error decoding log line from JSON: {e}")
     except websockets.exceptions.ConnectionClosed:
+        file_logger.error(f"Error connecting to WebSocket: {str(e)}")
         file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}")
         cleanup_old_logs('./log/cloudflare', retention_days=30)
+        print('Cleaned old logs...')
         if attempt <= 3:  # Set a maximum number of reconnection attempts
             await asyncio.sleep(10)  # Wait a bit before retrying
             new_websocket_url = await create_instant_logs_job()  # Recreate the Instant Logs job
