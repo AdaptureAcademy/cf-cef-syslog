@@ -131,7 +131,7 @@ async def connect_and_process_logs(websocket_url, attempt=1):
     except websockets.exceptions.ConnectionClosed:
         file_logger.error(f"Error connecting to WebSocket: {str(e)}")
         file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {attempt}")
-        cleanup_old_logs('./log/cloudflare', retention_days=30)
+        # cleanup_old_logs('./log/cloudflare', retention_days=30)
         print('Cleaned old logs...')
         if attempt <= 3:  # Set a maximum number of reconnection attempts
             await asyncio.sleep(10)  # Wait a bit before retrying
@@ -237,12 +237,24 @@ async def main():
         await connect_and_process_logs(websocket_url)
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def exception_handler(loop, context):
+    # Extracting the exception object
+    exception = context.get('exception')
+    if exception:
+        logger.error(f"Caught exception: {exception}")
+    else:
+        logger.error(f"Caught exception: {context['message']}")
+
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(exception_handler)
     try:
-        asyncio.run(main())
+        loop.run_until_complete(main())
     except Exception as e:
-        print(e)
-        error_message = f"Script crashed due to an unhandled exception: {str(e)}"
-        print(error_message)
-        send_email(error_message)
-        raise e  # Optionally re-raise the exception if you want the script to exit with an error status.
+        logger.error(f"Unhandled exception: {e}")
+        send_email(f"Script crashed due to an unhandled exception: {str(e)}")
+    finally:
+        loop.close()
