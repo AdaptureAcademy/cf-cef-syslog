@@ -112,6 +112,7 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                         log = json.loads(log_line)
                         # Ensure log is a dictionary before passing to convert_to_cef
                         if isinstance(log, dict):
+                            print(log)
                             # Convert to CEF
                             cef_log = convert_to_cef(log)
                             # Handle syslog transmission
@@ -227,6 +228,7 @@ def send_email(text: str):
 # Main function to run the script
 async def main():
     websocket_url = await create_instant_logs_job()
+    print(websocket_url)
     cleanup_old_logs('./log/cloudflare', retention_days=30)
     if websocket_url:
         await connect_and_process_logs(websocket_url)
@@ -236,6 +238,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as e:
+        print(e)
         error_message = f"Script crashed due to an unhandled exception: {str(e)}"
         print(error_message)
         send_email(error_message)
