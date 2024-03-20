@@ -225,8 +225,10 @@ def send_email(text: str):
             server.send_message(msg)
             print("Email sent successfully")
     except Exception as e:
-        print(f"Failed to send email: {str(e)}")
-
+        if not e:
+            print("An unknown error occurred while sending the email.")
+        else:
+            print(f"Failed to send email: {str(e)}")
 
 # Main function to run the script
 async def main():
@@ -254,7 +256,10 @@ if __name__ == "__main__":
     try:
         loop.run_until_complete(main())
     except Exception as e:
-        logger.error(f"Unhandled exception: {e}")
-        send_email(f"Script crashed due to an unhandled exception: {str(e)}")
+        if not e:
+            print('An unknown error occurred')
+        else:
+            logger.error(f"Unhandled exception: {e}")
+            send_email(f"Script crashed due to an unhandled exception: {str(e)}")
     finally:
         loop.close()
