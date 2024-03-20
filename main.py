@@ -31,15 +31,15 @@ SYSLOG_SERVER = os.getenv("SYSLOG_ADDRESS")
 SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 
 # Setup logging to syslog server
-# syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
-# syslog_handler.setLevel(logging.INFO)
-# syslog_logger = logging.getLogger("syslog_logger")
-# syslog_logger.addHandler(syslog_handler)
-# formatter = logging.Formatter('%(levelname)s - %(message)s')
-# syslog_handler.setFormatter(formatter)
+syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
+syslog_handler.setLevel(logging.INFO)
+syslog_logger = logging.getLogger("syslog_logger")
+syslog_logger.addHandler(syslog_handler)
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+syslog_handler.setFormatter(formatter)
 
 # Alternatively, use custom tcp handler
-syslog_client = SyslogTCPClient(SYSLOG_SERVER, SYSLOG_PORT)
+# syslog_client = SyslogTCPClient(SYSLOG_SERVER, SYSLOG_PORT)
 
 
 # Setup logging to file
@@ -117,14 +117,14 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                             cef_log = convert_to_cef(log)
                             
                             # Handle syslog transmission
-                            # syslog_logger.handle(
-                            #     logging.LogRecord(
-                            #         "syslog_logger", logging.INFO, "", 0, cef_log, [], None
-                            #     )
-                            # )
+                            syslog_logger.handle(
+                                logging.LogRecord(
+                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                )
+                            )
                             
                             # Handle custom TCP syslog transmission
-                            syslog_client.send(cef_log)
+                            # syslog_client.send(cef_log)
                             
                             # Save log locally
                             await save_log_locally(log, cef_log)
