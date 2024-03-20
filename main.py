@@ -200,14 +200,14 @@ def cleanup_old_logs(log_directory: str, retention_days: int = 1):
 
 
 def send_email(text: str):
-    SMTP_SERVER = "mail.mt.gov.sa"
+    SMTP_SERVER = os.getenv('SMTP_SERVER')
     SMTP_PORT = 587
     SENDER_EMAIL = os.getenv('SENDER_EMAIL')
     EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
     # Ensure that the required environment variables are set
-    if not SENDER_EMAIL or not EMAIL_PASSWORD:
-        print("Email credentials are missing. Please provide SENDER_EMAIL and EMAIL_PASSWORD in .env")
+    if not SENDER_EMAIL or not EMAIL_PASSWORD or not SMTP_SERVER:
+        print("Email credentials are missing. Please provide SMTP_SERVER, SENDER_EMAIL and EMAIL_PASSWORD in .env")
         return
 
     # Retrieve and process the recipient emails from .env
