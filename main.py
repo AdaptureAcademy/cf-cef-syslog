@@ -129,12 +129,12 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                             # Convert to CEF
                             cef_log = convert_to_cef(log)
                             # Handle syslog transmission
-                            # syslog_logger.handle(
-                            #     logging.LogRecord(
-                            #         "syslog_logger", logging.INFO, "", 0, cef_log, [], None
-                            #     )
-                            # )
-                            send_to_syslog(cef_log)
+                            syslog_logger.handle(
+                                logging.LogRecord(
+                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                )
+                            )
+                            # send_to_syslog(cef_log)
                             # Save log locally
                             await save_log_locally(log, cef_log)
                         else:
