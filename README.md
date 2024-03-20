@@ -99,13 +99,21 @@ npx pm2 save
 npx pm2 startup
 ```
 
-### 7. Monitor and Manage the Script
+### 7. Stopping the script
+
+Ensure you're in the script's directory, then stop the script with PM2:
+
+```bash
+npx pm2 stop cloudflare_logger
+```
+
+
+### 8. Monitor and Restart the Script
 
 - **To view logs:** `npx pm2 logs cloudflare_logger`
-- **To stop the script:** `npx pm2 stop cloudflare_logger`
 - **To restart the script:** `npx pm2 restart cloudflare_logger`
 
-### 8. Monitor Syslog Messages
+### 9. Monitor Syslog Messages
 
 To monitor syslog messages on the server:
 
