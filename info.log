@@ -1,0 +1,22 @@
+2024-03-21 01:43:15,298 INFO     Heartbeat: script is running
+2024-03-21 01:43:59,756 INFO     Heartbeat: script is running
+2024-03-21 01:44:16,901 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:44:16,906 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 01:44:53,370 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:44:53,374 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 01:45:08,507 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:45:08,510 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 01:45:39,433 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:45:44,624 INFO     Attempting to connect to WebSocket: None
+2024-03-21 01:45:44,648 ERROR    Unhandled exception: None isn't a valid URI: scheme isn't ws or wss
+2024-03-21 01:46:29,809 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:46:34,831 INFO     Attempting to connect to WebSocket: None
+2024-03-21 01:48:05,886 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:48:10,836 INFO     Attempting to connect to WebSocket: None
+2024-03-21 01:49:05,162 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
+2024-03-21 01:49:10,037 INFO     Attempting to connect to WebSocket: None
+2024-03-21 01:51:00,604 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 01:51:07,770 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 01:51:13,525 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/413cc2020f8fbb5db51c2e340e352122
+2024-03-21 01:51:13,525 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/413cc2020f8fbb5db51c2e340e352122
+2024-03-21 01:51:16,239 INFO     Successfully connected to WebSocket on attempt 1.
