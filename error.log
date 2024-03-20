@@ -1,8 +1,0 @@
-State file not found. Assuming first run.
-2024-03-14 16:54:27,588 ERROR    State file not found. Assuming first run.
-2024-03-15 00:35:10,057 ERROR    Failed to create Instant Logs job
-2024-03-18 16:22:30,147 ERROR    Failed to create Instant Logs job
-2024-03-18 16:23:03,323 ERROR    Failed to create Instant Logs job
-2024-03-18 16:23:24,210 ERROR    Failed to create Instant Logs job
-2024-03-18 17:35:18,079 ERROR    Failed to create Instant Logs job
-2024-03-18 17:37:33,214 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1

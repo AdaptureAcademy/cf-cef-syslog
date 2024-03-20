@@ -103,10 +103,8 @@ async def connect_and_process_logs(websocket_url, attempt=1):
             print(f"Successfully connected to WebSocket on attempt {attempt}.")
             while True:
                 log_data = await websocket.recv()
-                file_logger.info(f"Log data received: {log_data}")
                 # Split the received data into lines
                 log_lines = log_data.splitlines()
-                print("Transforming and transmitting logs...")
                 for log_line in log_lines:
                     try:
                         # Parse each line as a separate JSON object
@@ -202,10 +200,15 @@ def cleanup_old_logs(log_directory: str, retention_days: int = 1):
 
 
 def send_email(text: str):
-    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_SERVER = "mail.mt.gov.sa"
     SMTP_PORT = 587
     SENDER_EMAIL = os.getenv('SENDER_EMAIL')
     EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+    # Ensure that the required environment variables are set
+    if not SENDER_EMAIL or not EMAIL_PASSWORD:
+        print("Email credentials are missing. Please provide SENDER_EMAIL and EMAIL_PASSWORD in .env")
+        return
 
     # Retrieve and process the recipient emails from .env
     recipients_str = os.getenv("EMAIL_RECIPIENTS", "")
