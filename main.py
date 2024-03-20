@@ -229,6 +229,7 @@ def send_email(text: str):
         else:
             print(f"Failed to send email: {str(e)}")
 
+
 # Main function to run the script
 async def main():
     websocket_url = await create_instant_logs_job()
@@ -240,6 +241,7 @@ async def main():
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def exception_handler(loop, context):
     # Extracting the exception object
     exception = context.get('exception')
@@ -247,6 +249,7 @@ def exception_handler(loop, context):
         logger.error(f"Caught exception: {exception}")
     else:
         logger.error(f"Caught exception: {context['message']}")
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
