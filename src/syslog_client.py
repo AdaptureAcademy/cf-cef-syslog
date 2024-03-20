@@ -62,6 +62,7 @@ def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', 
     if syslog_type == 'native':
         # Setup logging to syslog server
         if con == 'tcp':
+            print('Server: ', SYSLOG_SERVER)
             syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
                                                                      SYSLOG_PORT),
                                                             socktype=socket.SOCK_STREAM
