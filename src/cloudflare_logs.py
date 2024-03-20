@@ -73,7 +73,7 @@ class CFClient:
 
     async def connect_and_process_logs(self,
                                        syslog_client: Union[SyslogTCPClient, logging.Logger],
-                                       syslog_type=Union['native', 'custom']):
+                                       syslog_type: str = 'native'):
         try:
             if not self.websocket_url:
                 await self._create_instant_logs_job()
@@ -95,6 +95,7 @@ class CFClient:
                                 cef_log = self.logUtils.convert_to_cef(log)
 
                                 if syslog_type == 'native' and isinstance(syslog_client, logging.Logger):
+                                    print(cef_log)
                                     # Handle syslog transmission
                                     syslog_client.handle(
                                         logging.LogRecord(
@@ -119,8 +120,10 @@ class CFClient:
                 await asyncio.sleep(10)  # Wait a bit before retrying
                 await self._create_instant_logs_job()  # Recreate the Instant Logs job
                 if self.websocket_url:
-                    await self.connect_and_process_logs(self.websocket_url, self.attempt + 1)
+                    self.attempt = 1  # Reset the attempt counter
+                    await self.connect_and_process_logs(syslog_client, syslog_type)
                 else:
+                    self.attempt += 1
                     self.emailClient.send_email("Failed to recreate Instant Logs job for reconnection.")
             else:
                 self.emailClient.send_email("Exceeded maximum reconnection attempts for WebSocket session.")

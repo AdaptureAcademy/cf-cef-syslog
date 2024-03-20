@@ -57,13 +57,18 @@ class SyslogTCPClient:
             raise e
 
 
-def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, type='native') -> Union[Logger, SyslogTCPClient]:
-    if type == 'native':
+def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', con: str = 'udp') \
+        -> Union[Logger, SyslogTCPClient]:
+    if syslog_type == 'native':
         # Setup logging to syslog server
-        syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
-                                                                 SYSLOG_PORT),
-                                                        # socktype=socket.SOCK_STREAM
-                                                        )
+        if con == 'tcp':
+            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
+                                                                     SYSLOG_PORT),
+                                                            socktype=socket.SOCK_STREAM
+                                                            )
+        else:
+            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
+                                                                     SYSLOG_PORT))
         syslog_handler.setLevel(logging.INFO)
         syslog_logger = logging.getLogger("syslog_logger")
         syslog_logger.addHandler(syslog_handler)

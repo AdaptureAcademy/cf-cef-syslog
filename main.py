@@ -15,7 +15,8 @@ SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 SYSLOG_TYPE = os.getenv("SYSLOG_TYPE")
 
 file_logger = setup_logging()
-syslog_handler = get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, type=SYSLOG_TYPE)
+syslog_handler = get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type=SYSLOG_TYPE,
+                                    con=os.getenv("SYSLOG_CONNECTION"))
 
 log_client = LogClient(file_logger)
 email_client = EmailClient(
