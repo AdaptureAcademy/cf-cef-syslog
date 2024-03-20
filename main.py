@@ -14,6 +14,23 @@ SYSLOG_SERVER = os.getenv("SYSLOG_SERVER")
 SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 SYSLOG_TYPE = os.getenv("SYSLOG_TYPE")
 
+# pritn all os variables
+print(
+    os.getenv("SYSLOG_SERVER"),
+    os.getenv('SYSLOG_PORT'),
+    os.getenv('SYSLOG_TYPE'),
+    os.getenv("SYSLOG_CONNECTION"),
+    os.getenv("SMTP_SERVER"),
+    os.getenv("RECIPIENTS"),
+    os.getenv("SENDER_EMAIL"),
+    os.getenv("EMAIL_PASSWORD"),
+    os.getenv("EMAIL_SUBJECT"),
+    os.getenv("ZONE_ID"),
+    os.getenv("CLOUDFLARE_API_KEY"),
+    os.getenv("CLOUDFLARE_EMAIL"),
+    os.getenv("CLOUDFLARE_API_TOKEN"),
+)
+
 file_logger = setup_logging()
 syslog_handler = get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type=SYSLOG_TYPE,
                                     con=os.getenv("SYSLOG_CONNECTION"))
