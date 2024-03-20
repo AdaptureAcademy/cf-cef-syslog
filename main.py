@@ -29,9 +29,6 @@ ZONE_ID = os.getenv("ZONE_ID")
 SYSLOG_SERVER = os.getenv("SYSLOG_ADDRESS")
 SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 
-# Path to the state file
-STATE_FILE_PATH = "last_processed_timestamp.txt"
-
 # Setup logging to syslog server
 syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
 syslog_handler.setLevel(logging.INFO)
@@ -96,6 +93,23 @@ async def create_instant_logs_job():
         return None
 
 
+def send_to_syslog(message):
+    try:
+        # Create a TCP socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        # Connect to the syslog server
+        sock.connect((SYSLOG_SERVER, SYSLOG_PORT))
+        
+        # Send the log message
+        sock.sendall(message.encode())
+        
+        # Close the socket
+        sock.close()
+    except Exception as e:
+        file_logger.error(f"Error sending log to syslog: {e}")
+
+
 async def connect_and_process_logs(websocket_url, attempt=1):
     try:
         file_logger.info(f"Attempting to connect to WebSocket: {websocket_url}")
@@ -115,11 +129,12 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                             # Convert to CEF
                             cef_log = convert_to_cef(log)
                             # Handle syslog transmission
-                            syslog_logger.handle(
-                                logging.LogRecord(
-                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
-                                )
-                            )
+                            # syslog_logger.handle(
+                            #     logging.LogRecord(
+                            #         "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                            #     )
+                            # )
+                            send_to_syslog(cef_log)
                             # Save log locally
                             await save_log_locally(log, cef_log)
                         else:
