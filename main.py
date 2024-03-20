@@ -3,6 +3,7 @@ import json
 import logging.handlers
 import os
 import smtplib
+import socket
 import sys
 from datetime import datetime, timedelta
 from datetime import timezone
@@ -32,7 +33,7 @@ SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 STATE_FILE_PATH = "last_processed_timestamp.txt"
 
 # Setup logging to syslog server
-syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
+syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
 syslog_handler.setLevel(logging.INFO)
 syslog_logger = logging.getLogger("syslog_logger")
 syslog_logger.addHandler(syslog_handler)
