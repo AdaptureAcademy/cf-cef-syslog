@@ -240,16 +240,6 @@ def send_email(text: str):
             print(f"Failed to send email: {str(e)}")
 
 
-# Main function to run the script
-async def main():
-    websocket_url = await create_instant_logs_job()
-    cleanup_old_logs('./log/cloudflare', retention_days=30)
-    if websocket_url:
-        await connect_and_process_logs(websocket_url)
-
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def exception_handler(loop, context):
@@ -259,6 +249,24 @@ def exception_handler(loop, context):
         logger.error(f"Caught exception: {exception}")
     else:
         logger.error(f"Caught exception: {context['message']}")
+
+async def heartbeat(interval=60):
+    """Logs a heartbeat message every `interval` seconds."""
+    while True:
+        logger.info("Heartbeat: script is running")
+        await asyncio.sleep(interval)
+
+
+
+# Modify your main function to include the heartbeat task
+async def main():
+    websocket_url = await create_instant_logs_job()
+    cleanup_old_logs('./log/cloudflare', retention_days=30)
+    if websocket_url:
+        # Start the heartbeat task
+        asyncio.create_task(heartbeat(60))  # Adjust interval as needed
+        await connect_and_process_logs(websocket_url)
+
 
 
 if __name__ == "__main__":
