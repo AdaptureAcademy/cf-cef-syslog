@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from datetime import timezone
 from email.message import EmailMessage
 from typing import cast
+from SysLogTCPClient import SyslogTCPClient
 
 import dateutil.parser
 import requests
@@ -30,12 +31,16 @@ SYSLOG_SERVER = os.getenv("SYSLOG_ADDRESS")
 SYSLOG_PORT = int(os.getenv("SYSLOG_PORT"))
 
 # Setup logging to syslog server
-syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
-syslog_handler.setLevel(logging.INFO)
-syslog_logger = logging.getLogger("syslog_logger")
-syslog_logger.addHandler(syslog_handler)
-formatter = logging.Formatter('%(levelname)s - %(message)s')
-syslog_handler.setFormatter(formatter)
+# syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT), socktype=socket.SOCK_STREAM)
+# syslog_handler.setLevel(logging.INFO)
+# syslog_logger = logging.getLogger("syslog_logger")
+# syslog_logger.addHandler(syslog_handler)
+# formatter = logging.Formatter('%(levelname)s - %(message)s')
+# syslog_handler.setFormatter(formatter)
+
+# Alternatively, use custom tcp handler
+syslog_client = SyslogTCPClient(SYSLOG_SERVER, SYSLOG_PORT)
+
 
 # Setup logging to file
 formatter = logging.Formatter(fmt="%(asctime)s %(levelname)-8s %(message)s")
@@ -92,24 +97,6 @@ async def create_instant_logs_job():
         send_email("Instant Logs Job Creation Failed")
         return None
 
-
-def send_to_syslog(message):
-    try:
-        # Create a TCP socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        # Connect to the syslog server
-        sock.connect((SYSLOG_SERVER, SYSLOG_PORT))
-        
-        # Send the log message
-        sock.sendall(message.encode())
-        print(message.encode())
-        # Close the socket
-        sock.close()
-    except Exception as e:
-        file_logger.error(f"Error sending log to syslog: {e}")
-
-
 async def connect_and_process_logs(websocket_url, attempt=1):
     try:
         file_logger.info(f"Attempting to connect to WebSocket: {websocket_url}")
@@ -128,13 +115,17 @@ async def connect_and_process_logs(websocket_url, attempt=1):
                         if isinstance(log, dict):
                             # Convert to CEF
                             cef_log = convert_to_cef(log)
+                            
                             # Handle syslog transmission
-                            syslog_logger.handle(
-                                logging.LogRecord(
-                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
-                                )
-                            )
-                            # send_to_syslog(cef_log)
+                            # syslog_logger.handle(
+                            #     logging.LogRecord(
+                            #         "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                            #     )
+                            # )
+                            
+                            # Handle custom TCP syslog transmission
+                            syslog_client.send(cef_log)
+                            
                             # Save log locally
                             await save_log_locally(log, cef_log)
                         else:
