@@ -103,7 +103,7 @@ def send_to_syslog(message):
         
         # Send the log message
         sock.sendall(message.encode())
-        
+        print(message.encode())
         # Close the socket
         sock.close()
     except Exception as e:
