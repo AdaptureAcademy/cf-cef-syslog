@@ -56,6 +56,13 @@ class SyslogTCPClient:
             print(f"Failed to reconnect to the syslog server: {e}")
             raise e
 
+import re
+
+class TrimFormatter(logging.Formatter):
+    def format(self, record):
+        msg = super().format(record)
+        return re.sub(r'^\s+|\s+$', '', msg, flags=re.UNICODE)
+
 
 def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', con: str = 'udp') \
         -> Union[Logger, SyslogTCPClient]:
@@ -63,18 +70,19 @@ def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', 
         # Setup logging to syslog server
         if con == 'tcp':
             print('Server: ', SYSLOG_SERVER)
-            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
-                                                                     SYSLOG_PORT),
-                                                            socktype=socket.SOCK_STREAM
-                                                            )
+            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT),
+                                                            socktype=socket.SOCK_STREAM)
         else:
-            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER,
-                                                                     SYSLOG_PORT))
+            syslog_handler = logging.handlers.SysLogHandler(address=(SYSLOG_SERVER, SYSLOG_PORT))
+
         syslog_handler.setLevel(logging.INFO)
         syslog_logger = logging.getLogger("syslog_logger")
         syslog_logger.addHandler(syslog_handler)
-        formatter = logging.Formatter('%(priority)s - %(message)s')
+
+        # Use the custom TrimFormatter to remove leading/trailing whitespace
+        formatter = TrimFormatter()
         syslog_handler.setFormatter(formatter)
+
         return syslog_logger
     else:
         syslog_client = SyslogTCPClient(SYSLOG_SERVER, SYSLOG_PORT)
