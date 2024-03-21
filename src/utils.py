@@ -83,13 +83,12 @@ class LogClient:
 
     @staticmethod
     def convert_to_cef(record: dict):
-        # Adjusted to ensure no extra space after CEF:0
-        cef_header = f"CEF:0|Cloudflare|TrafficLogs|1.0.0|0.0|Log Received|1|"
+        cef_header = "CEF:0|Cloudflare|TrafficLogs|1.0.0|0.0|Log Received|1|"
         cef_mapping = {
             "src": record.get("ClientIP", ""),
             "dhost": record.get("ClientRequestHost", ""),
             "requestMethod": record.get("ClientRequestMethod", ""),
-            "request": record.get("ClientRequestURI", ""),
+            "request": record.get("ClientRequestURI", "").replace("\n", "").replace("\r", "").replace("\t", " "),
             "end": record.get("EdgeEndTimestamp", ""),
             "bytesOut": str(record.get("EdgeResponseBytes", "")),
             "responseCode": str(record.get("EdgeResponseStatus", "")),
@@ -97,8 +96,7 @@ class LogClient:
             "cn1": record.get("RayID", ""),
             "cn1Label": "RayID",
         }
-        # Generate the CEF log string, ensuring no extra spaces are introduced
+        # Joining all parts together into one line
         cef_record_components = [f"{key}={value}" for key, value in cef_mapping.items() if value]
         cef_record = cef_header + ' '.join(cef_record_components)
-
         return cef_record

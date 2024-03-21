@@ -11,3 +11,30 @@
 2024-03-21 01:49:05,162 ERROR    Authentication information is missing. Please provide an API key and email or an API token.
 2024-03-21 01:51:00,604 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
 2024-03-21 01:51:07,770 ERROR    Unhandled exception: module 'websockets' has no attribute 'exceptions'
+2024-03-21 02:09:50,334 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:09:50,334 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 02:19:23,818 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:19:23,818 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 02:50:48,363 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:50:48,364 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 05:10:39,079 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 05:10:39,079 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 09:36:01,174 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 09:36:01,175 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 09:47:15,740 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 09:47:15,740 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 14:34:51,840 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 14:34:51,840 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:13:31,355 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:13:31,355 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:26:25,634 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:26:25,635 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:28:23,575 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:28:23,575 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 16:25:33,519 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 16:25:33,519 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 16:42:38,148 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 16:42:38,148 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!

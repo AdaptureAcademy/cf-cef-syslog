@@ -26,3 +26,69 @@
 2024-03-21 02:00:55,711 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/e6652db67f6f2bb16a7f27ec90f7a69b
 2024-03-21 02:00:55,712 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/e6652db67f6f2bb16a7f27ec90f7a69b
 2024-03-21 02:00:57,968 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 02:09:50,334 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:09:50,334 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 02:10:03,528 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/b1374f7128c946b354a8f4e3d3b76bf2
+2024-03-21 02:10:03,528 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/b1374f7128c946b354a8f4e3d3b76bf2
+2024-03-21 02:10:06,281 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 02:19:23,818 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:19:23,818 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 02:19:36,197 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/917fb3e8ee9d96c50138261eca2e7d20
+2024-03-21 02:19:36,197 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/917fb3e8ee9d96c50138261eca2e7d20
+2024-03-21 02:19:37,985 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 02:50:48,363 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 02:50:48,364 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 02:51:00,736 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/deef2fa1fcd5169dcb1f13bcb39202a8
+2024-03-21 02:51:00,736 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/deef2fa1fcd5169dcb1f13bcb39202a8
+2024-03-21 02:51:02,590 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 05:10:39,079 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 05:10:39,079 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 05:10:51,700 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/3c147937f6c94faa66362865232dcb1d
+2024-03-21 05:10:51,700 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/3c147937f6c94faa66362865232dcb1d
+2024-03-21 05:10:54,356 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 09:36:01,174 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 09:36:01,175 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 09:36:13,565 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/90ce8e91fdc25ed63c634d9f13a3573d
+2024-03-21 09:36:13,565 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/90ce8e91fdc25ed63c634d9f13a3573d
+2024-03-21 09:36:16,237 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 09:47:15,740 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 09:47:15,740 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 09:47:28,466 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/4761d38a1b753fd8f1fda4b4462d9297
+2024-03-21 09:47:28,466 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/4761d38a1b753fd8f1fda4b4462d9297
+2024-03-21 09:47:31,152 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 14:34:51,840 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 14:34:51,840 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 14:35:06,377 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/45a83d27d08796100cd9652932258ed5
+2024-03-21 14:35:06,377 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/45a83d27d08796100cd9652932258ed5
+2024-03-21 14:35:08,831 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 15:13:31,355 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:13:31,355 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:13:44,040 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/5c25c8dfad262e47135d419563457f1b
+2024-03-21 15:13:44,040 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/5c25c8dfad262e47135d419563457f1b
+2024-03-21 15:13:46,887 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 15:26:25,634 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:26:25,635 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:26:38,278 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/d0f2a0957946dd7025089f36ec2c9915
+2024-03-21 15:26:38,278 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/d0f2a0957946dd7025089f36ec2c9915
+2024-03-21 15:26:39,579 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 15:28:23,575 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 15:28:23,575 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 15:28:36,392 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/a7480b9739678cbfe67ec17746290968
+2024-03-21 15:28:36,392 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/a7480b9739678cbfe67ec17746290968
+2024-03-21 15:28:37,509 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 16:25:33,519 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 16:25:33,519 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 16:25:46,237 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/6a9c3143b22d5e8cffbde7ba024c6167
+2024-03-21 16:25:46,237 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/6a9c3143b22d5e8cffbde7ba024c6167
+2024-03-21 16:25:49,070 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 16:42:38,148 ERROR    Error connecting to WebSocket: no close frame received or sent
+2024-03-21 16:42:38,148 ERROR    WebSocket connection closed, attempting to reconnect... Attempt 1
+2024-03-21 16:42:51,092 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/676cc657029fa7a6d7ce828222b89525
+2024-03-21 16:42:51,092 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/676cc657029fa7a6d7ce828222b89525
+2024-03-21 16:42:52,995 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 17:44:57,176 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/a6a5fed83dc53560cf0b567572e7c78c
+2024-03-21 17:44:57,176 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/a6a5fed83dc53560cf0b567572e7c78c
+2024-03-21 17:44:59,905 INFO     Successfully connected to WebSocket on attempt 1.
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!
+2024-03-21 17:45:19,207 ERROR    Caught exception: Task was destroyed but it is pending!

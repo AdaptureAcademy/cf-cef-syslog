@@ -73,7 +73,7 @@ def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', 
         syslog_handler.setLevel(logging.INFO)
         syslog_logger = logging.getLogger("syslog_logger")
         syslog_logger.addHandler(syslog_handler)
-        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(priority)s - %(message)s')
         syslog_handler.setFormatter(formatter)
         return syslog_logger
     else:

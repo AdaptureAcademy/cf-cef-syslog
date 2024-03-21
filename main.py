@@ -51,6 +51,7 @@ async def heartbeat(interval=60):
     """Logs a heartbeat message every `interval` seconds."""
     while True:
         file_logger.info("Heartbeat: script is running")
+        print('Heartbeat: script is running')
         await asyncio.sleep(interval)
 
 

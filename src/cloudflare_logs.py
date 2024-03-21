@@ -111,21 +111,29 @@ class CFClient:
                                 self.file_logger.error(f"Received log entry is not in expected format: {log}")
                         except json.JSONDecodeError as e:
                             self.file_logger.error(f"Error decoding log line from JSON: {e}")
-        except websockets.exceptions.ConnectionClosed as e:
-            self.file_logger.error(f"Error connecting to WebSocket: {str(e)}")
-            self.file_logger.error(f"WebSocket connection closed, attempting to reconnect... Attempt {self.attempt}")
-            # cleanup_old_logs('./log/cloudflare', retention_days=30)
-            print('Cleaned old logs...')
-            if self.attempt <= 3:  # Set a maximum number of reconnection attempts
-                await asyncio.sleep(10)  # Wait a bit before retrying
-                await self._create_instant_logs_job()  # Recreate the Instant Logs job
+        except websockets.ConnectionClosed as e:
+            self.file_logger.error(f"Error connecting to WebSocket: {e}")
+            self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
+            if self.attempt <= 3:
+                await asyncio.sleep(10)
+                await self._create_instant_logs_job()
                 if self.websocket_url:
-                    self.attempt = 1  # Reset the attempt counter
+                    self.attempt += 1
                     await self.connect_and_process_logs(syslog_client, syslog_type)
                 else:
-                    self.attempt += 1
                     self.emailClient.send_email("Failed to recreate Instant Logs job for reconnection.")
             else:
                 self.emailClient.send_email("Exceeded maximum reconnection attempts for WebSocket session.")
-                self.file_logger.error("Exceeded maximum reconnection attempts for WebSocket session.")
-                raise e
+        except websockets.WebSocketException as e:
+            self.file_logger.error(f"WebSocket exception: {e}")
+            self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
+            if self.attempt <= 3:
+                await asyncio.sleep(10)
+                await self._create_instant_logs_job()
+                if self.websocket_url:
+                    self.attempt += 1
+                    await self.connect_and_process_logs(syslog_client, syslog_type)
+                else:
+                    self.emailClient.send_email("Failed to recreate Instant Logs job for reconnection.")
+            else:
+                self.emailClient.send_email("Exceeded maximum reconnection attempts for WebSocket session.")
