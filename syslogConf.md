@@ -12,7 +12,12 @@ CEF logs can be formatted incorrectly due to the syslog server's default behavio
 
 To bypass the syslog server's default functionality and ensure CEF logs are stored in the correct format, a custom configuration is required. This configuration will direct CEF logs to a separate file, dedicated solely to CEF logs, ensuring they are not mixed with other log types and are easy to analyze.
 
-We have tested this configuration on our testing syslog server to ensure its effectiveness. Below is the necessary configuration:
+We have tested this configuration on our testing syslog server to ensure its effectiveness.
+
+
+### Steps to Apply the Configuration
+
+1. **Create a Configuration File**: Save the following configuration in `/etc/rsyslog.d/cef-logs.conf`. This keeps custom configurations separate from the default `rsyslog` settings.
 
 ```plaintext
 # /etc/rsyslog.d/cef-logs.conf
@@ -24,10 +29,6 @@ $template RawCEFLogFormat,"CEF:%msg%\n"
 :msg, contains, "0|Cloudflare|TrafficLogs" /var/log/cef;RawCEFLogFormat
 & stop
 ```
-
-### Steps to Apply the Configuration
-
-1. **Create a Configuration File**: Save the above configuration in `/etc/rsyslog.d/cef-logs.conf`. This keeps custom configurations separate from the default `rsyslog` settings.
 
 2. **Restart Syslog Service**: Apply the new configuration by restarting the `rsyslog` service:
    ```bash
