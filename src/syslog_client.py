@@ -17,7 +17,7 @@ class SyslogTCPClient:
 
     def send(self, message):
         try:
-            self.sock.sendall((message + '\n').encode('utf-8'))
+            self.sock.sendall((message).encode('utf-8'))
             print('Sent: ', message)
         except Exception as e:
             print(f"Error sending log to syslog: {e}. Attempting to reconnect and resend.")
