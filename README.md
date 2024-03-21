@@ -10,65 +10,8 @@ This guide provides detailed instructions for deploying the Cloudflare Logger sc
 
 ## Setup Instructions
 
-### 1. Clone the Script Repository
 
-First, clone the repository containing the Cloudflare Logger script to your local machine:
-
-```bash
-git clone https://<username>:<github_PAT>@github.com/AdaptureAcademy/cf-cef-syslog.git --branch websocket-realtime
-cd cf-cef-syslog
-```
-
-### 2. Install Node.js and PM2
-
-Use `nvm` to install Node.js and then install PM2 globally:
-
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-source ~/.bashrc
-nvm install 15.0.1
-nvm use 15.0.1
-npm install pm2
-```
-
-### 3. Python Virtual Environment and Dependencies
-
-Create and activate a Python virtual environment, then install the required dependencies:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 4. Configure Syslog Server (Red Hat)
-
-On the server machine, perform the following steps:
-
-1. **Install rsyslog:**
-
-   ```bash
-   yum install -y rsyslog
-   ```
-
-2. **Configure rsyslog:**
-
-   Edit `/etc/rsyslog.conf` to enable UDP listening:
-
-   ```bash
-   $ModLoad imudp
-   $UDPServerRun 514
-   ```
-
-3. **Restart rsyslog and configure the firewall:**
-
-   ```bash
-   systemctl restart rsyslog
-   firewall-cmd --permanent --add-port=514/udp
-   firewall-cmd --reload
-   ```
-
-### 5. Create and Configure the .env File
+### 1. Create and Configure the .env File
 
 Create a `.env` file in the project root with the following fields. Ensure to replace the placeholder values with your actual data:
 
@@ -89,14 +32,14 @@ EMAIL_RECIPIENTS=recipient1@example.com,recipient2@example.com
 EMAIL_SUBJECT="Cloudflare Logs Job Alert"
 ```
 
-### 6. Running the Script with PM2
+### 2. Running the Script with PM2
 
 Ensure you're in the script's directory, then start the script with PM2:
 
 ```bash
-npx pm2 start "python3 main.py" --name "cloudflare_logger"
-npx pm2 save
-npx pm2 startup
+pm2 start "python3.8 main.py" --name "cf_logger" --max-memory-restart 1024M
+pm2 save
+pm2 startup
 ```
 
 ### 7. Stopping the script
@@ -104,21 +47,21 @@ npx pm2 startup
 Ensure you're in the script's directory, then stop the script with PM2:
 
 ```bash
-npx pm2 stop cloudflare_logger
+pm2 stop cf_logger
 ```
 
 
-### 8. Monitor and Restart the Script
+### 3. Monitor and Restart the Script
 
-- **To view logs:** `npx pm2 logs cloudflare_logger`
-- **To restart the script:** `npx pm2 restart cloudflare_logger`
+- **To view logs:** `pm2 logs cf_logger`
+- **To restart the script:** `pm2 restart cf_logger`
 
-### 9. Monitor Syslog Messages
+### 4. Monitor Syslog Messages
 
 To monitor syslog messages on the server:
 
 ```bash
-sudo tail -f /var/log/messages
+sudo tail -f /var/log/cef
 ```
 
 ## Documentation and Support
