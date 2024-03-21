@@ -83,8 +83,7 @@ def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', 
         syslog_logger = logging.getLogger("syslog_logger")
         syslog_logger.addHandler(syslog_handler)
 
-        # Use the custom TrimFormatter to remove leading/trailing whitespace
-        formatter = logging.Formatter('%(app_name)s:%(message)s')
+        formatter = logging.Formatter('%(asctime)s:%(message)s')
         syslog_handler.setFormatter(formatter)
 
         return syslog_logger
