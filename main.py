@@ -61,20 +61,16 @@ async def main():
         syslog_handler,
         SYSLOG_TYPE,
     )
-    # Start the heartbeat
-    await asyncio.create_task(heartbeat(60))  # Adjust interval as needed
-    print("Starting Cloudflare log processing")
-
+    tasks = [
+        asyncio.create_task(heartbeat(60)),
+        asyncio.create_task(cf.connect_and_process_logs(syslog_handler, SYSLOG_TYPE))
+    ]
+    await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    # Enable asyncio debug mode
-    loop.set_debug(True)
-    loop.set_exception_handler(exception_handler)
     try:
-        loop.run_until_complete(main())
+        asyncio.run(main(), debug=True)
     except Exception as e:
-        file_logger.error(f"Unhandled exception: {e}")
-        email_client.send_email(f"Script crashed due to an unhandled exception: {str(e)}")
-    finally:
-        loop.close()
+        file_logger.error(f"Caught exception: {e}")
+        email_client.send_email(f"Caught exception: {e}")
+        raise e
