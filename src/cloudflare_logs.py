@@ -73,44 +73,48 @@ class CFClient:
     async def connect_and_process_logs(self,
                                        syslog_client: Union[SyslogTCPClient, logging.Logger],
                                        syslog_type: str = 'native'):
-        try:
-            if not self.websocket_url:
-                await self._create_instant_logs_job()
-            self.file_logger.info(f"Attempting to connect to WebSocket: {self.websocket_url}")
-            async with websockets.connect(self.websocket_url) as websocket:
-                self.file_logger.info(f"Successfully connected to WebSocket!")
-                print(f"Successfully connected to WebSocket!")
-                while True:
-                    log_data = await websocket.recv()
-                    # Split the received data into lines
-                    log_lines = log_data.splitlines()
-                    for log_line in log_lines:
-                        try:
-                            # Parse each line as a separate JSON object
-                            log = json.loads(log_line)
-                            # Ensure log is a dictionary before passing to convert_to_cef
-                            if isinstance(log, dict):
-                                # Convert to CEF
-                                cef_log = self.logUtils.convert_to_cef(log)
+        while True:
+            try:
+                if not self.websocket_url:
+                    await self._create_instant_logs_job()
+                self.file_logger.info(f"Attempting to connect to WebSocket: {self.websocket_url}")
+                async with websockets.connect(self.websocket_url) as websocket:
+                    self.file_logger.info(f"Successfully connected to WebSocket!")
+                    print(f"Successfully connected to WebSocket!")
+                    while True:
+                        log_data = await websocket.recv()
+                        # Split the received data into lines
+                        log_lines = log_data.splitlines()
+                        for log_line in log_lines:
+                            try:
+                                # Parse each line as a separate JSON object
+                                log = json.loads(log_line)
+                                # Ensure log is a dictionary before passing to convert_to_cef
+                                if isinstance(log, dict):
+                                    # Convert to CEF
+                                    cef_log = self.logUtils.convert_to_cef(log)
 
-                                if syslog_type == 'native' and isinstance(syslog_client, logging.Logger):
-                                    print(cef_log)
-                                    # Handle syslog transmission
-                                    syslog_client.handle(
-                                        logging.LogRecord(
-                                            "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                    if syslog_type == 'native' and isinstance(syslog_client, logging.Logger):
+                                        print(cef_log)
+                                        # Handle syslog transmission
+                                        syslog_client.handle(
+                                            logging.LogRecord(
+                                                "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                            )
                                         )
-                                    )
-                                else:
-                                    syslog_client.send(cef_log)
+                                    else:
+                                        syslog_client.send(cef_log)
 
-                                # Save log locally
-                                await self.logUtils.save_log_locally(log, cef_log)
-                            else:
-                                self.file_logger.error(f"Received log entry is not in expected format: {log}")
-                        except json.JSONDecodeError as e:
-                            self.file_logger.error(f"Error decoding log line from JSON: {e}")
-        except (websockets.ConnectionClosed, websockets.WebSocketException) as e:
-                self.file_logger.error(f"WebSocket error: {e}")
-                self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
-                await asyncio.sleep(10)  # Delay before attempting to reconnect
+                                    # Save log locally
+                                    await self.logUtils.save_log_locally(log, cef_log)
+                                else:
+                                    self.file_logger.error(f"Received log entry is not in expected format: {log}")
+                            except json.JSONDecodeError as e:
+                                self.file_logger.error(f"Error decoding log line from JSON: {e}")
+            except (websockets.ConnectionClosed, websockets.WebSocketException) as e:
+                    self.file_logger.error(f"WebSocket error: {e}")
+                    self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
+                    await asyncio.sleep(5)  # Delay before attempting to reconnect
+            except Exception as e:  # Catch-all for any other exceptions
+                    self.file_logger.error(f"An unexpected error occurred: {e}")
+                    break
