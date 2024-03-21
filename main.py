@@ -55,13 +55,13 @@ async def heartbeat(interval=60):
         await asyncio.sleep(interval)
 
 
-# Modify your main function to include the heartbeat task
 async def main():
     log_client.cleanup_old_logs('./log/cloudflare', retention_days=30)
     await cf.connect_and_process_logs(
         syslog_handler,
         SYSLOG_TYPE,
     )
+    # Start the heartbeat
     await asyncio.create_task(heartbeat(60))  # Adjust interval as needed
     print("Starting Cloudflare log processing")
 
