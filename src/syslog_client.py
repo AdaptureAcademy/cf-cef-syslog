@@ -65,7 +65,7 @@ class TrimFormatter(logging.Formatter):
         msg = re.sub(r'^\s+|\s+$', '', msg, flags=re.UNICODE)
         # Ensure no space after "CEF:"
         msg = re.sub(r'(CEF:)\s+', r'\1', msg, flags=re.UNICODE)
-        return msg + '\n'
+        return msg
 
 
 def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', con: str = 'udp') \
