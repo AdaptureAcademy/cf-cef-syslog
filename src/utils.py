@@ -99,4 +99,4 @@ class LogClient:
         # Joining all parts together into one line
         cef_record_components = [f"{key}={value}" for key, value in cef_mapping.items() if value]
         cef_record = cef_header + ' '.join(cef_record_components)
-        return cef_record + '/n'
+        return cef_record
