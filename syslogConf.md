@@ -26,7 +26,7 @@ We have tested this configuration on our testing syslog server to ensure its eff
 $template RawCEFLogFormat,"CEF:%msg%\n"
 
 # Filter and store CEF logs that contain "0|Cloudflare|TrafficLogs", then stop processing
-:msg, contains, "0|Cloudflare|TrafficLogs" /var/log/cef;RawCEFLogFormat
+:msg, contains, "0|Cloudflare|TrafficLogs" /var/log/cloudflare_traffic_cef;RawCEFLogFormat
 & stop
 ```
 
@@ -35,9 +35,9 @@ $template RawCEFLogFormat,"CEF:%msg%\n"
    sudo systemctl restart rsyslog
    ```
 
-3. **Verify Log Output**: Ensure that CEF logs are being correctly formatted and stored in `/var/log/cef`. You can use `tail` or other command-line tools to inspect the logs:
+3. **Verify Log Output**: Ensure that CEF logs are being correctly formatted and stored in `/var/log/cloudflare_traffic_cef`. You can use `tail` or other command-line tools to inspect the logs:
    ```bash
-   tail -f /var/log/cef
+   tail -f /var/log/cloudflare_traffic_cef
    ```
 
 ## Sources
