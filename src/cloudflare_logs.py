@@ -135,7 +135,7 @@ class CFClient:
             except (websockets.ConnectionClosed, websockets.WebSocketException, websockets.ConnectionClosedError, websockets.ConnectionClosedOK) as e:
                 self.file_logger.error(f"WebSocket error: {e}")
                 self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
-                await asyncio.sleep(5)  # Delay before attempting to reconnect
+                await asyncio.sleep(30)  # Delay before attempting to reconnect
             except Exception as e:
                 self.file_logger.error(f"An unexpected error occurred: {e}")
                 break
