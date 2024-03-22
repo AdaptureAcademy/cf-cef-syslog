@@ -73,20 +73,25 @@ class CFClient:
     async def connect_and_process_logs(self,
                                        syslog_client: Union[SyslogTCPClient, logging.Logger],
                                        syslog_type: str = 'native'):
+        logger = logging.getLogger('websockets')
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(logging.StreamHandler())
         while True:
-            ping_task = None  # Initialize ping_task to None outside the try block
+            ping_task = None
             try:
                 if not self.websocket_url:
                     await self._create_instant_logs_job()
                 self.file_logger.info(f"Attempting to connect to WebSocket: {self.websocket_url}")
                 async with websockets.connect(self.websocket_url) as websocket:
-                    self.file_logger.info(f"Successfully connected to WebSocket!")
-                    print(f"Successfully connected to WebSocket!")
+                    self.file_logger.info("Successfully connected to WebSocket!")
+                    print("Successfully connected to WebSocket!")
 
                     async def send_ping():
                         while True:
                             try:
-                                await websocket.ping()
+                                pong_waiter = await websocket.ping()
+                                # Optionally wait for pong to measure latency
+                                # latency = await pong_waiter
                                 await asyncio.sleep(60)  # Ping interval
                             except websockets.exceptions.ConnectionClosed:
                                 break  # Exit the loop if the connection is closed
@@ -94,46 +99,50 @@ class CFClient:
                     ping_task = asyncio.create_task(send_ping())
 
                     while True:
-                        log_data = await websocket.recv()
-                        # Split the received data into lines
-                        log_lines = log_data.splitlines()
-                        for log_line in log_lines:
-                            try:
-                                # Parse each line as a separate JSON object
-                                log = json.loads(log_line)
-                                # Ensure log is a dictionary before passing to convert_to_cef
-                                if isinstance(log, dict):
-                                    # Convert to CEF
-                                    cef_log = self.logUtils.convert_to_cef(log)
+                        try:
+                            # Implementing timeout for recv using asyncio.wait_for
+                            log_data = await asyncio.wait_for(websocket.recv(), timeout=10)
+                            log_lines = log_data.splitlines()
+                            for log_line in log_lines:
+                                try:
+                                    # Parse each line as a separate JSON object
+                                    log = json.loads(log_line)
+                                    # Ensure log is a dictionary before passing to convert to cef
+                                    if isinstance(log, dict):
+                                        # Convert to CEF
+                                        cef_log = self.logUtils.convert_to_cef(log)
 
-                                    if syslog_type == 'native' and isinstance(syslog_client, logging.Logger):
-                                        print(cef_log)
-                                        # Handle syslog transmission
-                                        syslog_client.handle(
-                                            logging.LogRecord(
-                                                "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                        if syslog_type == 'native' and isinstance(syslog_client, logging.Logger):
+                                            print(cef_log)
+                                            # Handle syslog transmission
+                                            syslog_client.handle(
+                                                logging.LogRecord(
+                                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                                )
                                             )
-                                        )
-                                    else:
-                                        syslog_client.send(cef_log)
+                                        else:
+                                            syslog_client.send(cef_log)
 
-                                    # Save log locally
-                                    await self.logUtils.save_log_locally(log, cef_log)
-                                else:
-                                    self.file_logger.error(f"Received log entry is not in expected format: {log}")
-                            except json.JSONDecodeError as e:
-                                self.file_logger.error(f"Error decoding log line from JSON: {e}")
-            except (websockets.ConnectionClosed, websockets.WebSocketException) as e:
+                                        # Save log locally
+                                        await self.logUtils.save_log_locally(log, cef_log)
+                                    else:
+                                        self.file_logger.error(f"Received log entry is not in expected format: {log}")
+                                except json.JSONDecodeError as e:
+                                    self.file_logger.error(f"Error decoding log line from JSON: {e}")
+                        except asyncio.TimeoutError:
+                            self.file_logger.info("No data received within timeout period, continuing...")
+                            continue
+            except (websockets.ConnectionClosed, websockets.WebSocketException, websockets.ConnectionClosedError, websockets.ConnectionClosedOK) as e:
                 self.file_logger.error(f"WebSocket error: {e}")
                 self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
                 await asyncio.sleep(5)  # Delay before attempting to reconnect
-            except Exception as e:  # Catch-all for any other exceptions
+            except Exception as e:
                 self.file_logger.error(f"An unexpected error occurred: {e}")
                 break
             finally:
                 if ping_task:
-                    ping_task.cancel()  # Cancel the ping task if it's running
+                    ping_task.cancel()
                     try:
-                        await ping_task  # Wait for the task to be cancelled
-                    except Exception as e:
-                        pass  # Expected, as the task was cancelled
+                        await ping_task
+                    except asyncio.CancelledError:
+                        pass  # Ping task cancellation is expected
