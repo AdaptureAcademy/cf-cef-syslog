@@ -25,3 +25,6 @@
 2024-03-21 21:04:23,880 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/9a5b863806f4886e5156b783a33a889c
 2024-03-21 21:04:23,880 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/9a5b863806f4886e5156b783a33a889c
 2024-03-21 21:04:25,580 INFO     Successfully connected to WebSocket!
+2024-03-22 01:43:37,810 INFO     WebSocket URL: wss://logs.cloudflare.com/instant-logs/ws/sessions/b3c52d1ceeafb00b91f69c173bb8f7b9
+2024-03-22 01:43:37,810 INFO     Attempting to connect to WebSocket: wss://logs.cloudflare.com/instant-logs/ws/sessions/b3c52d1ceeafb00b91f69c173bb8f7b9
+2024-03-22 01:43:41,674 INFO     Successfully connected to WebSocket!
