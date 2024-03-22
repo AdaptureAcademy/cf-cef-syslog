@@ -74,6 +74,7 @@ class CFClient:
                                        syslog_client: Union[SyslogTCPClient, logging.Logger],
                                        syslog_type: str = 'native'):
         while True:
+            ping_task = None  # Initialize ping_task to None outside the try block
             try:
                 if not self.websocket_url:
                     await self._create_instant_logs_job()
@@ -81,6 +82,17 @@ class CFClient:
                 async with websockets.connect(self.websocket_url) as websocket:
                     self.file_logger.info(f"Successfully connected to WebSocket!")
                     print(f"Successfully connected to WebSocket!")
+
+                    async def send_ping():
+                        while True:
+                            try:
+                                await websocket.ping()
+                                await asyncio.sleep(60)  # Ping interval
+                            except websockets.exceptions.ConnectionClosed:
+                                break  # Exit the loop if the connection is closed
+
+                    ping_task = asyncio.create_task(send_ping())
+
                     while True:
                         log_data = await websocket.recv()
                         # Split the received data into lines
@@ -112,9 +124,16 @@ class CFClient:
                             except json.JSONDecodeError as e:
                                 self.file_logger.error(f"Error decoding log line from JSON: {e}")
             except (websockets.ConnectionClosed, websockets.WebSocketException) as e:
-                    self.file_logger.error(f"WebSocket error: {e}")
-                    self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
-                    await asyncio.sleep(5)  # Delay before attempting to reconnect
+                self.file_logger.error(f"WebSocket error: {e}")
+                self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
+                await asyncio.sleep(5)  # Delay before attempting to reconnect
             except Exception as e:  # Catch-all for any other exceptions
-                    self.file_logger.error(f"An unexpected error occurred: {e}")
-                    break
+                self.file_logger.error(f"An unexpected error occurred: {e}")
+                break
+            finally:
+                if ping_task:
+                    ping_task.cancel()  # Cancel the ping task if it's running
+                    try:
+                        await ping_task  # Wait for the task to be cancelled
+                    except Exception as e:
+                        pass  # Expected, as the task was cancelled
