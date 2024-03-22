@@ -5,4 +5,8 @@ old.py
 .env
 temp.txt
 /venv
+info.log
+error.log
+info.log.*
+error.log.*
 
