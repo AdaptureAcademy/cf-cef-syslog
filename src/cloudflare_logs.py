@@ -79,8 +79,7 @@ class CFClient:
         while True:
             ping_task = None
             try:
-                if not self.websocket_url:
-                    await self._create_instant_logs_job()
+                await self._create_instant_logs_job()
                 self.file_logger.info(f"Attempting to connect to WebSocket: {self.websocket_url}")
                 async with websockets.connect(self.websocket_url) as websocket:
                     self.file_logger.info("Successfully connected to WebSocket!")
@@ -135,8 +134,13 @@ class CFClient:
             except (websockets.ConnectionClosed, websockets.WebSocketException, websockets.ConnectionClosedError, websockets.ConnectionClosedOK) as e:
                 self.file_logger.error(f"WebSocket error: {e}")
                 self.file_logger.error("WebSocket connection closed, attempting to reconnect...")
-                await asyncio.sleep(30)  # Delay before attempting to reconnect
+                await asyncio.sleep(30)  # Delay before attempting to reconnect                
+
             except Exception as e:
+                if e.status_code == 429:
+                    self.file_logger.error("Rate limited by server (HTTP 429). Waiting before retrying...")
+                    await asyncio.sleep(300)  # Wait longer due to rate limiting
+                    continue
                 self.file_logger.error(f"An unexpected error occurred: {e}")
                 break
             finally:
@@ -146,3 +150,5 @@ class CFClient:
                         await ping_task
                     except asyncio.CancelledError:
                         pass  # Ping task cancellation is expected
+                # Refresh the Instant Logs job to get a new websocket URL if necessary
+                await self._create_instant_logs_job()
