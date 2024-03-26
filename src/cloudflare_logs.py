@@ -133,7 +133,7 @@ class CFClient:
                                             # Handle syslog transmission
                                             syslog_client.handle(
                                                 logging.LogRecord(
-                                                    "syslog_logger", logging.INFO, "", 0, cef_log, [], None
+                                                    "|", logging.INFO, "", 0, cef_log, [], None
                                                 )
                                             )
                                         else:
