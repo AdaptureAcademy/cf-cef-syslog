@@ -80,85 +80,11 @@ class LogClient:
             file.write(cef_log + "\n")
 
         print(f"Log saved locally: {filepath}")
-    # BotScore,
-    # BotScoreSrc,
-    # ClientIP
-    # ClientRequestHost,
-    # ClientRequestMethod
-    # ClientRequestURI,
-    # EdgeEndTimestamp,
-    # EdgeResponseBytes,
-    # EdgeResponseStatus
-    # EdgeStartTimestamp,
-    # RayID,
-    # ClientCountry
-    # ClientDeviceType
-    # ClientRequestUserAgent,
-    # ClientIPClass,
-    # ClientRequestPath
-    # ClientRequestProtocol
-    # ClientRequestReferer
-    # ClientRequestSource
-    # ClientXRequestedWith
-    # ContentScanObjResults
-    # ContentScanObjTypes
-    # EdgePathingOp
-    # EdgePathingSrc,
-    # EdgePathingStatus,
-    # EdgeRequestHost,
-    # EdgeServerIP,
-    # CacheCacheStatus,
-    # OriginIP,
-    # OriginResponseStatus,
-    # OriginSSLProtocol,
-    # RequestHeaders,
-    # CacheResponseStatus,
-    # ResponseHeaders,
-    # SecurityAction,
-    # SecurityActions,
-    # SecurityRuleDescription,
-    # SecurityRuleID,
-    # SecurityRuleIDs,
-    # SecuritySources,
-    # WAFFlags,
-    # WAFMatchedVar,
-    # WAFRCEAttackScore,
-    # WAFSQLiAttackScore,
-    # WAFXSSAttackScore,
-    # ZoneName,
-    # ClientMTLSAuthStatus,
-    # EdgeResponseContentType,
-    # ClientSSLCipher,
-    # ClientSSLProtocol,
-    # ClientSrcPort,
-    # EdgeColoCode,
-    # EdgeColoID,
-    # EdgeResponseCompressionRatio,
-    # OriginResponseBytes,
-    # OriginResponseHTTPExpires,
-    # OriginResponseHTTPLastModified,
-    # OriginResponseTime,
-    # ParentRayID,
-    # WorkerCPUTime,
-    # WorkerStatus,
-    # WorkerSubrequest,
-    # WorkerSubrequestCount,
-    # ZoneID,
-    # clientRequestQuery,
+
     @staticmethod
     def convert_to_cef(record: dict):
         cef_header = "CEF:0|Cloudflare|TrafficLogs|1.0.0|0.0|Log Received|1|"
         cef_mapping = {
-        #     "src": record.get("ClientIP", ""),
-        #     "clientRequestHost": (clean_string(record.get("ClientRequestHost", ""))),
-        #     "clientRequestMethod": clean_string(record.get("ClientRequestMethod", "")),
-        #     "clientRequestURI": clean_string(record.get("ClientRequestURI", "")),
-        #     "EdgeEndTimestamp": record.get("EdgeEndTimestamp", ""),
-        #     "bytesOut": str(record.get("EdgeResponseBytes", "")),
-        #     "responseCode": str(record.get("EdgeResponseStatus", "")),
-        #     "start": record.get("EdgeStartTimestamp", ""),
-        #     "cn1": record.get("RayID", ""),
-        #     "cn1Label": "RayID",
             "botScore": clean_string(record.get("BotScore", "")),
             "botScoreSrc": clean_string(record.get("BotScoreSrc", "")),
             "clientIP": clean_string(record.get("ClientIP", "")),
@@ -234,4 +160,9 @@ class LogClient:
 def clean_string(string) -> str:
     if not isinstance(string, str):
         return string
-    return string.replace('\n', '').replace("\r", "").replace("\t", " ")
+    # Remove unwanted characters.
+    cleaned_string = string.replace('\n', '').replace("\r", "").replace("\t", " ")
+    # Enclose in quotes if the string contains spaces.
+    if ' ' in cleaned_string:
+        cleaned_string = f'"{cleaned_string}"'
+    return cleaned_string
