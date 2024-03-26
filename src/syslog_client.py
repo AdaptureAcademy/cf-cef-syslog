@@ -23,7 +23,7 @@ class SyslogTCPClient:
         # Construct the syslog header
         timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         version = "1"  # Syslog protocol version
-        header = f"{pri}{version} {timestamp} {'CEF-converter'} {'converter'} - - - "
+        header = f"{pri}{version} {timestamp} {' '} {' '} - - - "
 
         # Combine the header with the message
         full_message = f"{header}{message}"
