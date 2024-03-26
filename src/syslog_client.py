@@ -1,3 +1,4 @@
+import datetime
 import logging.handlers
 import socket
 from logging import Logger
@@ -15,25 +16,29 @@ class SyslogTCPClient:
         sock.connect((self.server, self.port))
         return sock
 
-    def send(self, message):
+    def send(self, message, facility=16, severity=5):
+        # Construct the PRI part. Facility * 8 + Severity. Facility 16 (local0), Severity 5 (Notice)
+        pri = f"<{facility * 8 + severity}>"
+
+        # Construct the syslog header
+        timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        version = "1"  # Syslog protocol version
+        header = f"{pri}{version} {timestamp} {'CEF-converter'} {'converter'} - - - "
+
+        # Combine the header with the message
+        full_message = f"{header}{message}"
+
         try:
-            self.sock.sendall(message.encode('utf-8'))
-            print('Sent: ', (message).encode('utf-8'))
+            self.sock.sendall(full_message.encode('utf-8'))
+            print('Sent: ', full_message.encode('utf-8'))
         except Exception as e:
             print(f"Error sending log to syslog: {e}. Attempting to reconnect and resend.")
-
-            # Cleanly close the existing socket before trying to reconnect
-            self.close()  # Use the close method for proper resource management
-
-            # Re-establish the connection
+            self.close()
             self._create_socket_and_reconnect()
-
-            # Try to send the message again after reconnecting.
             try:
-                self.sock.sendall(message.encode('utf-8'))
-                print('Sent after reconnect: ', message)
+                self.sock.sendall(full_message.encode('utf-8'))
+                print('Sent after reconnect: ', full_message)
             except Exception as e:
-                # If sending fails again after reconnecting, log the error
                 print(f"Error sending log to syslog after reconnecting: {e}. Giving up.")
                 raise e
 
