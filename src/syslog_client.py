@@ -56,6 +56,7 @@ class SyslogTCPClient:
             print(f"Failed to reconnect to the syslog server: {e}")
             raise e
 
+
 def get_syslog_handler(SYSLOG_SERVER, SYSLOG_PORT, syslog_type: str = 'native', con: str = 'udp') \
         -> Union[Logger, SyslogTCPClient]:
     if syslog_type == 'native':

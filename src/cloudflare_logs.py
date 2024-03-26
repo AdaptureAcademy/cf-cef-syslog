@@ -53,8 +53,19 @@ class CFClient:
             return None
 
         data = {
-            "fields": "ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,EdgeEndTimestamp,"
-                      "EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID",
+            "fields": "BotScore,BotScoreSrc,ClientIP,ClientRequestHost,ClientRequestMethod,ClientRequestURI,"
+                      "EdgeEndTimestamp,EdgeResponseBytes,EdgeResponseStatus,EdgeStartTimestamp,RayID,ClientCountry,"
+                      "ClientDeviceType,ClientRequestUserAgent,ClientIPClass,ClientRequestPath,ClientRequestProtocol,"
+                      "ClientRequestReferer,ClientRequestSource,ClientXRequestedWith,ContentScanObjResults,"
+                      "ContentScanObjTypes,EdgePathingOp,EdgePathingSrc,EdgePathingStatus,EdgeRequestHost,EdgeServerIP,"
+                      "CacheCacheStatus,EdgeStartTimestamp,OriginIP,OriginResponseStatus,OriginSSLProtocol,"
+                      "RequestHeaders,CacheResponseStatus,ResponseHeaders,SecurityAction,SecurityActions,"
+                      "SecurityRuleDescription,SecurityRuleID,SecurityRuleIDs,SecuritySources,WAFFlags,WAFMatchedVar,"
+                      "WAFRCEAttackScore,WAFSQLiAttackScore,WAFXSSAttackScore,ZoneName,ClientMTLSAuthStatus,"
+                      "EdgeResponseContentType,ClientSSLCipher,ClientSSLProtocol,ClientSrcPort,EdgeColoCode,EdgeColoID,"
+                      "EdgeResponseCompressionRatio,OriginResponseBytes,OriginResponseHTTPExpires,"
+                      "OriginResponseHTTPLastModified,OriginResponseTime,OriginSSLProtocol,ParentRayID,WorkerCPUTime,"
+                      "WorkerStatus,WorkerSubrequest,WorkerSubrequestCount,ZoneID,clientRequestQuery",
             "sample": 1,
             "filter": "",
             "kind": "instant-logs"
