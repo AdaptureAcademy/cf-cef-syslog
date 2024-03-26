@@ -64,8 +64,8 @@ class CFClient:
                       "WAFRCEAttackScore,WAFSQLiAttackScore,WAFXSSAttackScore,ZoneName,ClientMTLSAuthStatus,"
                       "EdgeResponseContentType,ClientSSLCipher,ClientSSLProtocol,ClientSrcPort,EdgeColoCode,EdgeColoID,"
                       "EdgeResponseCompressionRatio,OriginResponseBytes,OriginResponseHTTPExpires,"
-                      "OriginResponseHTTPLastModified,OriginResponseTime,OriginSSLProtocol,ParentRayID,WorkerCPUTime,"
-                      "WorkerStatus,WorkerSubrequest,WorkerSubrequestCount,ZoneID,clientRequestQuery",
+                      "OriginResponseHTTPLastModified,OriginResponseTime,OriginSSLProtocol,ParentRayID,"
+                      "WorkerStatus,WorkerSubrequest,WorkerSubrequestCount,ZoneID,clientRequestQuery", # WorkerCPUTime
             "sample": 1,
             "filter": "",
             "kind": "instant-logs"
