@@ -83,17 +83,16 @@ class LogClient:
 
     @staticmethod
     def convert_to_cef(record: dict):
-        cef_header = "CEF:0|Cloudflare|TrafficLogs|1.0.0|0.0|Log Received|1|"
+        cef_header = "CEF:0|Cloudflare|Logs|1.0.0|0.0|Log Received|1|"
         cef_mapping = {
+            "src": clean_string(record.get("ClientIP", "")),
+            "dhost": clean_string(record.get("ClientRequestHost", "")),
+            "responseCode": clean_string(record.get("EdgeResponseStatus", "")),
             "botScore": clean_string(record.get("BotScore", "")),
             "botScoreSrc": clean_string(record.get("BotScoreSrc", "")),
-            "clientIP": clean_string(record.get("ClientIP", "")),
-            "clientRequestHost": clean_string(record.get("ClientRequestHost", "")),
             "clientRequestMethod": clean_string(record.get("ClientRequestMethod", "")),
             "clientRequestURI": clean_string(record.get("ClientRequestURI", "")),
             "edgeEndTimestamp": clean_string(record.get("EdgeEndTimestamp", "")),
-            "edgeResponseBytes": clean_string(record.get("EdgeResponseBytes", "")),
-            "edgeResponseStatus": clean_string(record.get("EdgeResponseStatus", "")),
             "edgeStartTimestamp": clean_string(record.get("EdgeStartTimestamp", "")),
             "rayID": clean_string(record.get("RayID", "")),
             "clientCountry": clean_string(record.get("ClientCountry", "")),
@@ -136,16 +135,10 @@ class LogClient:
             "clientSSLCipher": clean_string(record.get("ClientSSLCipher", "")),
             "clientSSLProtocol": clean_string(record.get("ClientSSLProtocol", "")),
             "clientSrcPort": clean_string(record.get("ClientSrcPort", "")),
-            "edgeColoCode": clean_string(record.get("EdgeColoCode", "")),
-            "edgeColoID": clean_string(record.get("EdgeColoID", "")),
-            "edgeResponseCompressionRatio": clean_string(record.get("EdgeResponseCompressionRatio", "")),
             "originResponseBytes": clean_string(record.get("OriginResponseBytes", "")),
             "originResponseHTTPExpires": clean_string(record.get("OriginResponseHTTPExpires", "")),
             "originResponseHTTPLastModified": clean_string(record.get("OriginResponseHTTPLastModified", "")),
-            "originResponseTime": clean_string(record.get("OriginResponseTime", "")),
             "parentRayID": clean_string(record.get("ParentRayID", "")),
-            "workerCPUTime": clean_string(record.get("WorkerCPUTime", "")),
-            "workerStatus": clean_string(record.get("WorkerStatus", "")),
             "workerSubrequest": clean_string(record.get("WorkerSubrequest", "")),
             "workerSubrequestCount": clean_string(record.get("WorkerSubrequestCount", "")),
             "zoneID": clean_string(record.get("ZoneID", "")),
