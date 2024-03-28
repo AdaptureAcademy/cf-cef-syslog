@@ -144,6 +144,7 @@ class LogClient:
             "zoneID": clean_string(record.get("ZoneID", "")),
             "clientRequestQuery": clean_string(record.get("clientRequestQuery", "")),
             "leakedCredentialCheckResult": clean_string(record.get("LeakedCredentialCheckResult", "")),
+            "ruleID": clean_string(record.get("RuleID", "")),
         }
         # Joining all parts together into one line
         cef_record_components = [f"{key}={value}" for key, value in cef_mapping.items() if value]
