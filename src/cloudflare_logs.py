@@ -64,7 +64,7 @@ class CFClient:
                       "WAFRCEAttackScore,WAFSQLiAttackScore,WAFXSSAttackScore,ZoneName,ClientMTLSAuthStatus,"
                       "EdgeResponseContentType,ClientSSLCipher,ClientSSLProtocol,ClientSrcPort,OriginResponseBytes,"
                       "OriginResponseHTTPExpires,OriginResponseHTTPLastModified,OriginSSLProtocol,ParentRayID,"
-                      "WorkerSubrequest,WorkerSubrequestCount,ZoneID,clientRequestQuery",
+                      "WorkerSubrequest,WorkerSubrequestCount,ZoneID,ClientRequestQuery,LeakedCredentialCheckResult,",
             "sample": 1,
             "filter": "",
             "kind": "instant-logs"

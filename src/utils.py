@@ -143,6 +143,7 @@ class LogClient:
             "workerSubrequestCount": clean_string(record.get("WorkerSubrequestCount", "")),
             "zoneID": clean_string(record.get("ZoneID", "")),
             "clientRequestQuery": clean_string(record.get("clientRequestQuery", "")),
+            "leakedCredentialCheckResult": clean_string(record.get("LeakedCredentialCheckResult", "")),
         }
         # Joining all parts together into one line
         cef_record_components = [f"{key}={value}" for key, value in cef_mapping.items() if value]
