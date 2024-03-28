@@ -56,7 +56,7 @@ async def heartbeat(interval=60):
 
 
 async def main():
-    log_client.cleanup_old_logs('./log/cloudflare', retention_days=30)
+    log_client.cleanup_old_logs('./log/cloudflare', retention_days=2)
     await cf.connect_and_process_logs(
         syslog_handler,
         SYSLOG_TYPE,
